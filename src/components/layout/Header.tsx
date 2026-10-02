@@ -1,189 +1,269 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, Menu, X, Newspaper, Flame, Bell, User } from 'lucide-react';
-import { SITE_NAME, SITE_TAGLINE, MAIN_CATEGORIES } from '@/lib/constants';
-import TopBar from './TopBar';
-import BreakingTicker from './BreakingTicker';
-import ThemeToggle from '../common/ThemeToggle';
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Wallet,
+  PlusCircle,
+  Volume2,
+  VolumeX,
+  User,
+  Shield,
+  LogOut,
+  Flame,
+  Trophy,
+  Dices,
+  ChevronDown,
+  Layers,
+  Sparkles,
+} from "lucide-react";
+import { useUserStore } from "@/lib/store/useUserStore";
+import sound from "@/lib/sound";
 
-export function Header() {
-  const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
+export default function Header() {
+  const pathname = usePathname();
+  const { user, setIsDepositModalOpen, setIsWithdrawModalOpen, openAuthModal, setUser } = useUserStore();
+  const [isMuted, setIsMuted] = useState(sound.getIsMuted());
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchOpen(false);
-      setMobileMenuOpen(false);
-    }
+  const toggleSound = () => {
+    const next = sound.toggleMute();
+    setIsMuted(next);
   };
 
   return (
-    <header className="w-full bg-white dark:bg-darkbg border-b border-slate-200 dark:border-darkbg-border sticky top-0 z-40 shadow-xs">
-      {/* Top Utility Bar */}
-      <TopBar />
-
-      {/* Main Header Container */}
-      <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-4">
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle Navigation Menu"
-            className="p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Brand Logo & Tagline */}
-        <div className="flex-1 lg:flex-initial text-center lg:text-left">
-          <Link href="/" className="inline-block group">
-            <div className="flex items-center justify-center lg:justify-start gap-1.5">
-              <span className="font-serif font-black tracking-tight text-2xl sm:text-3xl md:text-4xl text-newspaper-navy dark:text-white uppercase transition-colors group-hover:text-newspaper-blue">
-                STATBOUND
-              </span>
-              <span className="font-serif font-light text-2xl sm:text-3xl md:text-4xl text-newspaper-accent">
-                NEWS
+    <header className="sticky top-0 z-30 w-full bg-[#FBF3DE] border-b border-[#E6D7B8] shadow-sm select-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        {/* Left: 777 Retro Badge Logo */}
+        <div className="flex items-center space-x-6">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="relative logo-777-badge px-3.5 py-1.5 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform">
+              <span className="logo-777-text text-2xl font-black tracking-wider leading-none">
+                777
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-0.5">
-              {SITE_TAGLINE}
-            </p>
+            <div className="hidden sm:block">
+              <div className="font-black text-sm tracking-wider text-[#381523] uppercase">
+                CASINO & SPORTS
+              </div>
+              <div className="text-[10px] tracking-widest text-[#BA2649] font-bold">
+                RETRO VEGAS EDITION
+              </div>
+            </div>
           </Link>
-        </div>
 
-        {/* Desktop Search & Admin Quick Action */}
-        <div className="hidden lg:flex items-center gap-3">
-          {/* Quick Search Form */}
-          <form onSubmit={handleSearchSubmit} className="relative w-64 xl:w-72">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="সংবাদ অনুসন্ধান করুন..."
-              className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-newspaper-blue"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </form>
-        </div>
-
-        {/* Mobile Search & Theme Action */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <ThemeToggle />
-          <button
-            onClick={() => setSearchOpen(!searchOpen)}
-            aria-label="Search"
-            className="p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Search Bar Dropdown */}
-      {searchOpen && (
-        <div className="lg:hidden px-4 pb-3 pt-1 border-t border-slate-100 dark:border-slate-800">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="সংবাদ অনুসন্ধান করুন..."
-              autoFocus
-              className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-newspaper-blue"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          </form>
-        </div>
-      )}
-
-      {/* Desktop Main Category Navigation */}
-      <nav className="hidden lg:block border-t border-slate-200 dark:border-darkbg-border bg-slate-50 dark:bg-darkbg-card">
-        <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex items-center flex-wrap gap-1 xl:gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 py-1.5">
-            <li>
-              <Link
-                href="/"
-                className="px-2.5 py-1 rounded hover:text-newspaper-accent dark:hover:text-newspaper-accent transition-colors flex items-center gap-1"
-              >
-                <Newspaper className="w-3.5 h-3.5" />
-                <span>প্রচ্ছদ</span>
-              </Link>
-            </li>
-            {MAIN_CATEGORIES.filter((c) => c.isMain).map((cat) => (
-              <li key={cat.slug}>
-                <Link
-                  href={`/${cat.slug}`}
-                  className="px-2.5 py-1 rounded hover:text-newspaper-accent dark:hover:text-newspaper-accent transition-colors"
-                >
-                  {cat.nameBn}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-
-      {/* Breaking News Ticker Bar */}
-      <BreakingTicker />
-
-      {/* Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Drawer Panel */}
-          <div className="relative w-4/5 max-w-sm bg-white dark:bg-darkbg h-full overflow-y-auto p-5 shadow-2xl z-10 flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <span className="font-serif font-black text-xl text-newspaper-navy dark:text-white uppercase">
-                STATBOUND <span className="text-newspaper-accent font-light">NEWS</span>
+          {/* Nav Links */}
+          <nav className="hidden lg:flex items-center space-x-1.5">
+            <Link
+              href="/"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                pathname === "/"
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              href="/sports"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                pathname.startsWith("/sports")
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-[#BA2649]" />
+              <span>Sportsbook</span>
+              <span className="px-1.5 py-0.2 bg-[#BA2649] text-white text-[9px] font-black rounded-full">
+                LIVE
               </span>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+            </Link>
+            <Link
+              href="/casino/aviator"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                pathname.includes("aviator")
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5 text-[#BA2649]" />
+              <span>Aviator</span>
+            </Link>
+            <Link
+              href="/casino/carrom"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                pathname.includes("carrom")
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-[#0D9488]" />
+              <span>Carrom Board</span>
+            </Link>
+            <Link
+              href="/casino/roulette"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                pathname.includes("roulette")
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              <Dices className="w-3.5 h-3.5 text-[#BA2649]" />
+              <span>Roulette 3D</span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* Right Section: Sound, Balance & 777 Login / Sign Up */}
+        <div className="flex items-center space-x-3">
+          {/* Sound Toggle */}
+          <button
+            onClick={toggleSound}
+            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            className="p-2 text-[#381523] hover:text-[#BA2649] bg-[#FEF9E7] border border-[#E6D7B8] rounded-xl transition"
+          >
+            {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          {user ? (
+            <div className="flex items-center space-x-2.5">
+              {/* Balance Card */}
+              <div
+                onClick={() => setIsDepositModalOpen(true)}
+                className="hidden sm:flex items-center bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl px-3.5 py-1.5 cursor-pointer transition shadow-sm"
               >
-                <X className="w-5 h-5" />
+                <div className="mr-3">
+                  <div className="text-[10px] text-[#6B4B58] font-bold">Cash Balance</div>
+                  <div className="text-sm font-mono font-black text-[#10B981]">
+                    ৳{user.balance.toLocaleString()}
+                  </div>
+                </div>
+                {user.bonusBalance > 0 && (
+                  <div className="border-l border-[#E6D7B8] pl-2.5">
+                    <div className="text-[10px] text-[#6B4B58] font-bold">Bonus</div>
+                    <div className="text-xs font-mono font-black text-[#BA2649]">
+                      ৳{user.bonusBalance.toLocaleString()}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Deposit Button */}
+              <button
+                onClick={() => {
+                  setIsDepositModalOpen(true);
+                  sound.playChipClick();
+                }}
+                className="btn-burgundy px-4 py-2 text-xs uppercase tracking-wider"
+              >
+                + Deposit
+              </button>
+
+              {/* Profile Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-1.5 p-1.5 bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl transition"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[#BA2649] text-[#FFDE59] flex items-center justify-center font-black text-xs">
+                    {user.name ? user.name[0].toUpperCase() : "U"}
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#381523]" />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-[#FEF9E7] border-2 border-[#E6D7B8] rounded-xl shadow-2xl py-2 z-50 text-xs text-[#381523]">
+                    <div className="px-3.5 py-2 border-b border-[#E6D7B8]">
+                      <div className="font-bold text-[#381523] truncate">{user.name}</div>
+                      <div className="text-[10px] text-[#6B4B58] truncate">{user.email}</div>
+                      <span className="mt-1 inline-block px-1.5 py-0.5 bg-[#BA2649]/15 text-[#BA2649] rounded text-[9px] font-black">
+                        {user.role} MEMBER
+                      </span>
+                    </div>
+
+                    <Link
+                      href="/wallet"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] font-semibold"
+                    >
+                      <Wallet className="w-4 h-4 text-[#BA2649]" />
+                      <span>Wallet & Banking</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        setIsWithdrawModalOpen(true);
+                      }}
+                      className="w-full flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] text-left font-semibold"
+                    >
+                      <PlusCircle className="w-4 h-4 text-[#10B981]" />
+                      <span>Withdraw Cash</span>
+                    </button>
+
+                    <Link
+                      href="/account"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] font-semibold"
+                    >
+                      <User className="w-4 h-4 text-blue-600" />
+                      <span>Account & Bets</span>
+                    </Link>
+
+                    {user.role === "ADMIN" && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center space-x-2 px-3.5 py-2 text-[#BA2649] hover:bg-[#F3E5C8] font-bold"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <span>Admin Controller</span>
+                      </Link>
+                    )}
+
+                    <div className="border-t border-[#E6D7B8] mt-1 pt-1">
+                      <button
+                        onClick={() => {
+                          setUser(null);
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-3.5 py-2 text-red-600 hover:bg-[#F3E5C8] text-left font-bold"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Screenshot Replica: Burgundy LOGIN + Teal SIGN UP */
+            <div className="flex items-center space-x-2.5">
+              <button
+                onClick={() => {
+                  openAuthModal("LOGIN");
+                  sound.playChipClick();
+                }}
+                className="btn-burgundy px-7 py-2 text-xs uppercase tracking-wider font-black shadow-retro"
+              >
+                LOGIN
+              </button>
+
+              <button
+                onClick={() => {
+                  openAuthModal("REGISTER");
+                  sound.playChipClick();
+                }}
+                className="btn-teal-outline px-6 py-2 text-xs uppercase tracking-wider font-black shadow-sm"
+              >
+                SIGN UP
               </button>
             </div>
-
-            {/* Mobile Categories */}
-            <div className="py-4 space-y-1 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 px-2">
-                ক্যাটাগরি সমূহ
-              </p>
-              <Link
-                href="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                প্রচ্ছদ (Home)
-              </Link>
-              {MAIN_CATEGORIES.map((cat) => (
-                <Link
-                  key={cat.slug}
-                  href={`/${cat.slug}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  {cat.nameBn} ({cat.name})
-                </Link>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }
-export default Header;

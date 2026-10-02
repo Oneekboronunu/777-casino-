@@ -1,176 +1,89 @@
-'use client';
+import React from "react";
+import Link from "next/link";
+import { ShieldCheck, Lock, Award, Flame } from "lucide-react";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { Mail, Phone, MapPin, Send, CheckCircle, Shield, Award, FileText } from 'lucide-react';
-import { SITE_NAME, SITE_TAGLINE, MAIN_CATEGORIES, DISTRICTS_LIST, CONTACT_INFO, SOCIAL_LINKS } from '@/lib/constants';
-
-export function Footer() {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      try {
-        await fetch('/api/newsletter', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        setSubscribed(true);
-        setEmail('');
-      } catch {
-        setSubscribed(true);
-      }
-    }
-  };
-
+export default function Footer() {
   return (
-    <footer className="bg-newspaper-navy text-slate-300 pt-12 pb-8 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Top Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10 border-b border-slate-800">
-          {/* Column 1: Brand & Bio */}
-          <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-block">
-              <div className="flex items-center gap-1.5">
-                <span className="font-serif font-black tracking-tight text-2xl text-white uppercase">
-                  STATBOUND
-                </span>
-                <span className="font-serif font-light text-2xl text-newspaper-accent">
-                  NEWS
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-medium tracking-wide mt-0.5">
-                {SITE_TAGLINE}
-              </p>
-            </Link>
-
-            <p className="text-xs text-slate-400 leading-relaxed pr-4">
-              স্ট্যাটবাউন্ড নিউজ বাংলাদেশের একটি আধুনিক, নিরপেক্ষ ও বস্তুনিষ্ঠ ডিজিটাল সংবাদপত্র। সত্য, নির্ভুল ও তাৎক্ষণিক সংবাদ পরিবেশনে আমরা সর্বদাই দায়বদ্ধ।
-            </p>
-
-            <div className="pt-2 text-xs text-slate-300 space-y-2">
-              <p className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-newspaper-accent flex-shrink-0 mt-0.5" />
-                <span>{CONTACT_INFO.address}</span>
-              </p>
-              <p className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-newspaper-accent flex-shrink-0" />
-                <span>{CONTACT_INFO.phone}</span>
-              </p>
-              <p className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-newspaper-accent flex-shrink-0" />
-                <span>{CONTACT_INFO.email}</span>
-              </p>
+    <footer className="w-full bg-[#080B12] border-t border-[#23334E] text-gray-400 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Payment Partners Bar */}
+        <div>
+          <div className="text-center text-xs uppercase font-bold tracking-wider text-gray-500 mb-4">
+            Official Instant Payment Methods & Banking Partners
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-[#E2136E]" />
+              <span className="text-xs font-bold text-white tracking-wide">bKash</span>
             </div>
-          </div>
-
-          {/* Column 2: Main Categories */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-l-2 border-newspaper-accent pl-2">
-              প্রধান বিভাগ
-            </h4>
-            <ul className="space-y-2 text-xs">
-              {MAIN_CATEGORIES.slice(0, 7).map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/${c.slug}`} className="hover:text-white transition-colors">
-                    {c.nameBn} ({c.name})
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 3: More Categories & Districts */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-l-2 border-newspaper-accent pl-2">
-              অন্যান্য বিভাগ
-            </h4>
-            <ul className="space-y-2 text-xs">
-              {MAIN_CATEGORIES.slice(7, 14).map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/${c.slug}`} className="hover:text-white transition-colors">
-                    {c.nameBn} ({c.name})
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href="/district" className="hover:text-white transition-colors font-medium text-amber-400">
-                  জেলা সংবাদ (সকল জেলা) →
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Newsletter & Policies */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-l-2 border-newspaper-accent pl-2">
-              দৈনিক বুলেটিন
-            </h4>
-            <p className="text-xs text-slate-400 mb-3">
-              প্রতিদিনের গুরুত্বপূর্ণ খবরের সারসংক্ষেপ আপনার ইমেইলে পেতে সাবস্ক্রাইব করুন।
-            </p>
-
-            {subscribed ? (
-              <div className="p-3 bg-emerald-950/60 border border-emerald-700 rounded text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>সাবস্ক্রিপশন সম্পন্ন হয়েছে!</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="space-y-2">
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="আপনার ইমেইল ঠিকানা..."
-                    required
-                    className="w-full text-xs px-3 py-2 rounded bg-slate-800 text-white placeholder-slate-500 border border-slate-700 focus:outline-none focus:ring-1 focus:ring-newspaper-accent"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded bg-newspaper-accent text-white hover:bg-red-700 transition-colors"
-                    aria-label="Subscribe"
-                  >
-                    <Send className="w-3 h-3" />
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="mt-4 pt-4 border-t border-slate-800 space-y-1.5 text-xs text-slate-400">
-              <Link href="/editorial-policy" className="block hover:text-white transition-colors">
-                • সম্পাদকীয় নীতিমালা (Editorial Policy)
-              </Link>
-              <Link href="/corrections-policy" className="block hover:text-white transition-colors">
-                • সংশোধনী নীতিমালা (Corrections)
-              </Link>
-              <Link href="/advertise" className="block hover:text-white transition-colors text-amber-400">
-                • বিজ্ঞাপন দিন (Advertise)
-              </Link>
+            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-[#F7931E]" />
+              <span className="text-xs font-bold text-white tracking-wide">Nagad</span>
+            </div>
+            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-[#8C3494]" />
+              <span className="text-xs font-bold text-white tracking-wide">Rocket</span>
+            </div>
+            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-[#0D5CAB]" />
+              <span className="text-xs font-bold text-white tracking-wide">City Bank Wire</span>
+            </div>
+            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
+              <span className="text-xs font-bold text-white tracking-wide">Visa / Mastercard</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} {SITE_NAME}. সর্বস্বত্ব সংরক্ষিত।</p>
-          <div className="flex flex-wrap items-center gap-4 text-[11px]">
-            <Link href="/about" className="hover:text-white transition-colors">আমাদের সম্পর্কে</Link>
-            <span>•</span>
-            <Link href="/contact" className="hover:text-white transition-colors">যোগাযোগ</Link>
-            <span>•</span>
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">গোপনীয়তা নীতি</Link>
-            <span>•</span>
-            <Link href="/terms" className="hover:text-white transition-colors">ব্যবহারের শর্তাবলী</Link>
-            <span>•</span>
-            <Link href="/rss.xml" className="hover:text-white transition-colors">RSS ফিড</Link>
+        {/* Brand & Trust Badges */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-[#23334E]/60 text-xs">
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center space-x-2">
+              <Flame className="w-5 h-5 text-[#D4AF37]" />
+              <span className="font-extrabold text-white text-sm">AURA CASINO & SPORTSBOOK</span>
+            </div>
+            <p className="text-gray-400 leading-relaxed text-[11px] max-w-md">
+              Aura Casino operates with certified random number generator (RNG) verification and real-time provably fair cryptographic hashing. Fast local withdrawals and 24/7 dedicated support.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="font-bold text-white text-xs uppercase tracking-wider mb-2">Casino Originals</div>
+            <div><Link href="/casino/aviator" className="hover:text-white">Aviator Crash</Link></div>
+            <div><Link href="/casino/carrom" className="hover:text-white">Carrom Board Pro</Link></div>
+            <div><Link href="/casino/roulette" className="hover:text-white">European Roulette 3D</Link></div>
+            <div><Link href="/casino/dice" className="hover:text-white">Provably Fair Dice</Link></div>
+            <div><Link href="/casino/coinflip" className="hover:text-white">Coin Flip Streak</Link></div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="font-bold text-white text-xs uppercase tracking-wider mb-2">Sports Prediction</div>
+            <div><Link href="/sports?sport=CRICKET" className="hover:text-white">IPL 2026 Prediction</Link></div>
+            <div><Link href="/sports?sport=CRICKET" className="hover:text-white">BPL Matches</Link></div>
+            <div><Link href="/sports?sport=FOOTBALL" className="hover:text-white">UEFA Champions League</Link></div>
+            <div><Link href="/sports?sport=FOOTBALL" className="hover:text-white">Premier League</Link></div>
+            <div><Link href="/account" className="hover:text-white">VIP Loyalty Rewards</Link></div>
+          </div>
+        </div>
+
+        {/* Compliance Footer */}
+        <div className="pt-6 border-t border-[#23334E]/60 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-500 space-y-3 sm:space-y-0">
+          <div className="flex items-center space-x-3">
+            <span className="px-2 py-0.5 bg-red-500/20 text-red-400 font-bold rounded">18+</span>
+            <span>Gambling can be addictive. Play responsibly.</span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center space-x-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+              <span>Curacao License #8048/JAZ</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <Lock className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>256-Bit SSL Encrypted</span>
+            </span>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-export default Footer;
