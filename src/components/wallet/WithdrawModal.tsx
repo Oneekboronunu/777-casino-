@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import { X, CheckCircle, ShieldCheck, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 const WITHDRAW_METHODS = [
-  { id: "bKash", name: "bKash", logoColor: "#E2136E", fee: "0% Free" },
-  { id: "Nagad", name: "Nagad", logoColor: "#F7931E", fee: "0% Free" },
-  { id: "Rocket", name: "Rocket", logoColor: "#8C3494", fee: "0% Free" },
-  { id: "Bank", name: "Bank Transfer", logoColor: "#0D5CAB", fee: "0% Free" },
+  { id: "bKash", name: "bKash", logoColor: "#E2136E", fee: "0% Free", LogoComponent: BKashLogo },
+  { id: "Nagad", name: "Nagad", logoColor: "#F7931E", fee: "0% Free", LogoComponent: NagadLogo },
+  { id: "Rocket", name: "Rocket", logoColor: "#8C3494", fee: "0% Free", LogoComponent: RocketLogo },
+  { id: "Bank", name: "Bank Transfer", logoColor: "#0D5CAB", fee: "0% Free", LogoComponent: BankLogo },
 ];
 
 export default function WithdrawModal() {
@@ -136,6 +137,7 @@ export default function WithdrawModal() {
               <div className="grid grid-cols-2 gap-2.5">
                 {WITHDRAW_METHODS.map((m) => {
                   const isSelected = selectedMethod.id === m.id;
+                  const LogoComp = m.LogoComponent;
                   return (
                     <button
                       key={m.id}
@@ -146,18 +148,15 @@ export default function WithdrawModal() {
                       }}
                       className={`flex items-center justify-between p-3 rounded-xl border text-left transition ${
                         isSelected
-                          ? "border-[#D4AF37] bg-[#D4AF37]/10 text-white"
-                          : "border-[#23334E] bg-[#151F32] text-gray-300 hover:border-gray-600"
+                          ? "border-[#D4AF37] bg-[#D4AF37]/15 ring-1 ring-[#D4AF37]/50 text-white shadow-lg"
+                          : "border-[#23334E] bg-[#151F32] text-gray-300 hover:border-gray-500 hover:bg-[#1A263D]"
                       }`}
                     >
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className="w-3.5 h-3.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: m.logoColor }}
-                        />
-                        <span className="text-sm font-bold">{m.name}</span>
+                      <div className="flex items-center space-x-2.5">
+                        <LogoComp variant="icon" size="sm" className="flex-shrink-0" />
+                        <span className="text-sm font-bold text-white">{m.name}</span>
                       </div>
-                      <span className="text-[10px] text-[#10B981] font-semibold">{m.fee}</span>
+                      <span className="text-[10px] text-[#10B981] font-bold bg-[#10B981]/15 px-1.5 py-0.5 rounded border border-[#10B981]/30">{m.fee}</span>
                     </button>
                   );
                 })}

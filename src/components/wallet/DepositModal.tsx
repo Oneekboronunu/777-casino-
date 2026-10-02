@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, CheckCircle, Copy, ShieldCheck, Gift, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 const PAYMENT_METHODS = [
   {
@@ -13,6 +14,7 @@ const PAYMENT_METHODS = [
     number: "01788-992211",
     type: "Personal Send Money",
     instructions: "Go to your bKash App > Send Money > Enter Number > Enter Amount > Enter Reference 'AURA' > Copy TrxID.",
+    LogoComponent: BKashLogo,
   },
   {
     id: "Nagad",
@@ -21,22 +23,25 @@ const PAYMENT_METHODS = [
     number: "01899-334422",
     type: "Personal Send Money",
     instructions: "Go to Nagad App > Send Money > Enter Number > Enter Amount > Confirm PIN > Copy 8-digit TxID.",
+    LogoComponent: NagadLogo,
   },
   {
     id: "Rocket",
-    name: "Rocket",
+    name: "DBBL Rocket",
     logoColor: "#8C3494",
     number: "01911-556677-4",
-    type: "Personal Transfer",
+    type: "Personal / Agent",
     instructions: "Dial *322# or use Rocket App > Send Money > Enter Rocket Number > Complete Transfer > Enter TxID.",
+    LogoComponent: RocketLogo,
   },
   {
     id: "Bank",
-    name: "City Bank Transfer",
+    name: "City Bank Wire",
     logoColor: "#0D5CAB",
     number: "1102938491001",
     type: "Instant Bank Transfer",
     instructions: "Transfer to A/C: 1102938491001 (Aura Royal Ltd, City Bank Principal Branch) > Submit TxID / Ref.",
+    LogoComponent: BankLogo,
   },
 ];
 
@@ -153,6 +158,7 @@ export default function DepositModal() {
               <div className="grid grid-cols-2 gap-2.5">
                 {PAYMENT_METHODS.map((m) => {
                   const isSelected = selectedMethod.id === m.id;
+                  const LogoComp = m.LogoComponent;
                   return (
                     <button
                       key={m.id}
@@ -163,17 +169,14 @@ export default function DepositModal() {
                       }}
                       className={`flex items-center p-3 rounded-xl border text-left transition ${
                         isSelected
-                          ? "border-[#D4AF37] bg-[#D4AF37]/10 text-white"
-                          : "border-[#23334E] bg-[#151F32] text-gray-300 hover:border-gray-600"
+                          ? "border-[#D4AF37] bg-[#D4AF37]/15 ring-1 ring-[#D4AF37]/50 text-white shadow-lg"
+                          : "border-[#23334E] bg-[#151F32] text-gray-300 hover:border-gray-500 hover:bg-[#1A263D]"
                       }`}
                     >
-                      <div
-                        className="w-3.5 h-3.5 rounded-full mr-2.5 flex-shrink-0"
-                        style={{ backgroundColor: m.logoColor }}
-                      />
-                      <div>
-                        <div className="text-sm font-bold">{m.name}</div>
-                        <div className="text-[11px] text-gray-400">{m.type}</div>
+                      <LogoComp variant="icon" size="sm" className="mr-3 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs sm:text-sm font-bold truncate text-white">{m.name}</div>
+                        <div className="text-[10px] text-gray-400 truncate">{m.type}</div>
                       </div>
                     </button>
                   );

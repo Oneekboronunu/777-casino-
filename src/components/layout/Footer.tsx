@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Lock, Award, Flame } from "lucide-react";
+import { ShieldCheck, Lock, Award, Flame, CreditCard } from "lucide-react";
+import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function Footer() {
   return (
@@ -9,27 +10,16 @@ export default function Footer() {
         {/* Payment Partners Bar */}
         <div>
           <div className="text-center text-xs uppercase font-bold tracking-wider text-gray-500 mb-4">
-            Official Instant Payment Methods & Banking Partners
+            Official Instant Payment Methods & Banking Partners (BD Local)
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-[#E2136E]" />
-              <span className="text-xs font-bold text-white tracking-wide">bKash</span>
-            </div>
-            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-[#F7931E]" />
-              <span className="text-xs font-bold text-white tracking-wide">Nagad</span>
-            </div>
-            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-[#8C3494]" />
-              <span className="text-xs font-bold text-white tracking-wide">Rocket</span>
-            </div>
-            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-[#0D5CAB]" />
-              <span className="text-xs font-bold text-white tracking-wide">City Bank Wire</span>
-            </div>
-            <div className="px-4 py-2 bg-[#101726] border border-[#23334E] rounded-xl flex items-center space-x-2">
-              <span className="text-xs font-bold text-white tracking-wide">Visa / Mastercard</span>
+          <div className="flex flex-wrap items-center justify-center gap-3.5">
+            <BKashLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
+            <NagadLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
+            <RocketLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
+            <BankLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
+            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white hover:scale-105 transition">
+              <CreditCard className="w-4 h-4 text-[#D4AF37]" />
+              <span className="font-extrabold text-xs tracking-wider text-gray-200">Visa / MC</span>
             </div>
           </div>
         </div>

@@ -22,6 +22,7 @@ import {
 import LiveMatchBanner from "@/components/sports/LiveMatchBanner";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
@@ -259,6 +260,44 @@ export default function HomePage() {
             >
               Play to Trigger
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2.5 INSTANT LOCAL PAYMENT LOGOS STRIP */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-[#101726]/90 border border-[#23334E] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center space-x-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping" />
+            <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+              Instant 24/7 Deposits & Withdrawals:
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div 
+              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+              className="cursor-pointer hover:scale-105 transition transform"
+            >
+              <BKashLogo variant="badge" />
+            </div>
+            <div 
+              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+              className="cursor-pointer hover:scale-105 transition transform"
+            >
+              <NagadLogo variant="badge" />
+            </div>
+            <div 
+              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+              className="cursor-pointer hover:scale-105 transition transform"
+            >
+              <RocketLogo variant="badge" />
+            </div>
+            <div 
+              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+              className="cursor-pointer hover:scale-105 transition transform"
+            >
+              <BankLogo variant="badge" />
+            </div>
           </div>
         </div>
       </div>

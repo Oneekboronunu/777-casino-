@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function WalletPage() {
   const { user, setIsDepositModalOpen, setIsWithdrawModalOpen } = useUserStore();
@@ -121,6 +122,65 @@ export default function WalletPage() {
             {user?.role || "USER"} VIP
           </div>
           <div className="text-[11px] text-[#10B981]">0% fees on all local transactions</div>
+        </div>
+      </div>
+
+      {/* Instant Local Payment Gateways Grid */}
+      <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
+          <div>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Accepted Payment Gateways</h2>
+            <p className="text-xs text-gray-400">Automated 24/7 instant deposit & zero-fee withdrawals</p>
+          </div>
+          <span className="text-[11px] font-bold text-[#10B981] bg-[#10B981]/10 px-2.5 py-1 rounded-full border border-[#10B981]/30">
+            ● 100% Automated Gateway
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+          {/* bKash Card */}
+          <div 
+            onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+            className="cursor-pointer p-4 rounded-xl bg-gradient-to-br from-[#1c1322] to-[#141b2b] border border-[#E2136E]/30 hover:border-[#E2136E] transition-all hover:scale-[1.02] shadow-lg flex items-center justify-between group"
+          >
+            <BKashLogo variant="full" />
+            <span className="text-[10px] font-extrabold text-[#FF65A5] bg-[#E2136E]/20 px-2 py-1 rounded-lg border border-[#E2136E]/40 group-hover:bg-[#E2136E] group-hover:text-white transition">
+              Deposit
+            </span>
+          </div>
+
+          {/* Nagad Card */}
+          <div 
+            onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+            className="cursor-pointer p-4 rounded-xl bg-gradient-to-br from-[#231713] to-[#141b2b] border border-[#F7931E]/30 hover:border-[#F7931E] transition-all hover:scale-[1.02] shadow-lg flex items-center justify-between group"
+          >
+            <NagadLogo variant="full" />
+            <span className="text-[10px] font-extrabold text-[#FFA842] bg-[#F7931E]/20 px-2 py-1 rounded-lg border border-[#F7931E]/40 group-hover:bg-[#F7931E] group-hover:text-white transition">
+              Deposit
+            </span>
+          </div>
+
+          {/* Rocket Card */}
+          <div 
+            onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+            className="cursor-pointer p-4 rounded-xl bg-gradient-to-br from-[#1f1225] to-[#141b2b] border border-[#8C3494]/30 hover:border-[#8C3494] transition-all hover:scale-[1.02] shadow-lg flex items-center justify-between group"
+          >
+            <RocketLogo variant="full" />
+            <span className="text-[10px] font-extrabold text-[#C87BD2] bg-[#8C3494]/20 px-2 py-1 rounded-lg border border-[#8C3494]/40 group-hover:bg-[#8C3494] group-hover:text-white transition">
+              Deposit
+            </span>
+          </div>
+
+          {/* Bank Card */}
+          <div 
+            onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+            className="cursor-pointer p-4 rounded-xl bg-gradient-to-br from-[#101b2a] to-[#141b2b] border border-[#0D5CAB]/30 hover:border-[#0D5CAB] transition-all hover:scale-[1.02] shadow-lg flex items-center justify-between group"
+          >
+            <BankLogo variant="full" />
+            <span className="text-[10px] font-extrabold text-[#6DB1FF] bg-[#0D5CAB]/20 px-2 py-1 rounded-lg border border-[#0D5CAB]/40 group-hover:bg-[#0D5CAB] group-hover:text-white transition">
+              Wire
+            </span>
+          </div>
         </div>
       </div>
 
