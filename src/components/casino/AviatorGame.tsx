@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
+import { useAdminConfigStore } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
 
 interface LivePlayerBet {
@@ -69,14 +70,43 @@ export default function AviatorGame() {
   const animFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  // Generate randomized crash point (Provably Fair simulation with weighted distribution)
+  const { settings } = useAdminConfigStore();
+
+  // Generate randomized crash point (Controlled dynamically by Admin Panel)
   const generateCrashPoint = () => {
+    // 1. Force Next Crash Multiplier if set in Admin
+    if (settings.aviatorMode === "FORCE_NEXT_CRASH") {
+      return Math.max(1.01, settings.aviatorForceNextMultiplier || 1.15);
+    }
+
+    // 2. Mega Win Event
+    if (settings.aviatorMode === "MEGA_WIN_EVENT") {
+      return 25.0 + Math.random() * 75.0;
+    }
+
+    // 3. House Profit Mode (Customized instant crash %)
+    const instantCrashChance = (settings.aviatorHouseCrashUnder120Chance || 25) / 100;
     const rand = Math.random();
-    if (rand < 0.05) return 1.0 + Math.random() * 0.15; // 5% instant crash < 1.15x
-    if (rand < 0.5) return 1.15 + Math.random() * 1.5; // 45% between 1.15x - 2.65x
-    if (rand < 0.8) return 2.65 + Math.random() * 3.5; // 30% between 2.65x - 6.15x
-    if (rand < 0.95) return 6.15 + Math.random() * 10.0; // 15% between 6.15x - 16.15x
-    return 16.15 + Math.random() * 40.0; // 5% Mega flight up to 56x
+
+    if (rand < instantCrashChance) {
+      return 1.0 + Math.random() * 0.18; // Instant crash between 1.00x - 1.18x
+    }
+
+    if (rand < 0.60) {
+      return 1.18 + Math.random() * 1.6; // 1.18x - 2.78x
+    }
+
+    if (rand < 0.85) {
+      return 2.78 + Math.random() * 3.5; // 2.78x - 6.28x
+    }
+
+    if (rand < 0.96) {
+      return 6.28 + Math.random() * 10.0; // 6.28x - 16.28x
+    }
+
+    const maxCap = settings.aviatorMaxMultiplierCap || 250;
+    const highFlight = 16.28 + Math.random() * 40.0;
+    return Math.min(maxCap, highFlight);
   };
 
   // Generate simulated other players' bets

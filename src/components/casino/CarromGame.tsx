@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
+import { useAdminConfigStore } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
 
 interface Coin {

