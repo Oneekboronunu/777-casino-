@@ -214,7 +214,7 @@ class SoundEngine {
     osc.stop(ctx.currentTime + 0.12);
   }
 
-  // 8. Roulette Wheel Tick
+  // 8. Roulette Wheel Tick & Ball Rattle
   public playWheelTick() {
     if (this.isMuted) return;
     const ctx = this.initCtx();
@@ -235,6 +235,50 @@ class SoundEngine {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.015);
+  }
+
+  public playBallRattle() {
+    if (this.isMuted) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(2400 + Math.random() * 600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.02);
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.02);
+  }
+
+  public playBallDrop() {
+    if (this.isMuted) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(480, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.08);
+
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
   }
 
   // 9. Dice Roll Shake & Clatter
