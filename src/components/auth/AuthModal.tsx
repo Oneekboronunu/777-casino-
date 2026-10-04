@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { signIn } from "next-auth/react";
 import { X, ShieldCheck, User, Lock, Mail, Phone, ArrowRight, Sparkles, Flame, CheckCircle2 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import { signInWithGoogle } from "@/lib/firebase";
@@ -50,22 +49,28 @@ export default function AuthModal() {
 
     setLoading(true);
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        identifier: targetIdentifier,
-        password: targetPass,
+      const res = await fetch("/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: targetIdentifier,
+          password: targetPass,
+        }),
       });
 
-      if (res?.error) {
-        showNotification(res.error, "ERROR");
-      } else {
+      const data = await res.json();
+
+      if (res.ok && data.user) {
         sound.playWin();
-        await fetchUser();
-        showNotification("Welcome back! Signed in successfully.", "SUCCESS");
+        useUserStore.getState().setUser(data.user);
+        showNotification(`Welcome back, ${data.user.name}! Signed in successfully.`, "SUCCESS");
         closeAuthModal();
+      } else {
+        sound.playCrash();
+        showNotification(data.error || "Failed to sign in", "ERROR");
       }
     } catch {
-      showNotification("Failed to sign in", "ERROR");
+      showNotification("Failed to connect to authentication server", "ERROR");
     } finally {
       setLoading(false);
     }
