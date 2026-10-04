@@ -49,10 +49,15 @@ export default function CarromGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Match State
+  const [mounted, setMounted] = useState(false);
   const [betAmount, setBetAmount] = useState<number>(1000);
   const [matchStatus, setMatchStatus] = useState<"IDLE" | "PLAYING" | "WON" | "LOST">("IDLE");
   const [turn, setTurn] = useState<"PLAYER" | "OPPONENT">("PLAYER");
   const [selectedOpponent, setSelectedOpponent] = useState(OPPONENTS[0]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Scores / Puck counts
   const [playerPucksLeft, setPlayerPucksLeft] = useState<number>(6);
@@ -858,6 +863,17 @@ export default function CarromGame() {
   };
 
   const prizePool = betAmount * 2;
+
+  if (!mounted) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4 bg-[#2B0830] text-white">
+        <div className="w-12 h-12 rounded-full border-4 border-[#FFDE59] border-t-transparent animate-spin" />
+        <div className="text-xs font-mono font-bold tracking-widest uppercase text-[#FFDE59]">
+          Loading Carrom Board Arena...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-b from-[#2B0830] via-[#431346] to-[#1C0520] p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-start select-none">

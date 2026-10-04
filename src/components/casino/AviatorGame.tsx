@@ -44,12 +44,17 @@ export default function AviatorGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Game Lifecycle State
+  const [mounted, setMounted] = useState(false);
   const [gameState, setGameState] = useState<"WAITING" | "FLYING" | "CRASHED">("WAITING");
   const [countdown, setCountdown] = useState<number>(5.0);
   const [multiplier, setMultiplier] = useState<number>(1.0);
   const [crashPoint, setCrashPoint] = useState<number>(2.25);
   const [history, setHistory] = useState<number[]>(INITIAL_HISTORY);
   const [activeTab, setActiveTab] = useState<"ALL" | "MY" | "TOP">("ALL");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Dual Bet Consoles
   // Console 1 (Left)
@@ -460,6 +465,17 @@ export default function AviatorGame() {
     return "bg-[#1E3A8A]/60 text-[#93C5FD] border border-blue-500/40";
   };
 
+  if (!mounted) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4 bg-[#0C070D] text-white">
+        <div className="w-12 h-12 rounded-full border-4 border-[#BA2649] border-t-transparent animate-spin" />
+        <div className="text-xs font-mono font-bold tracking-widest uppercase text-[#FFDE59]">
+          Loading Aviator Flight Engine...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-[#0C070D] p-2 sm:p-4 lg:p-6 flex flex-col items-center select-none font-sans">
       <div className="w-full max-w-5xl space-y-3">
@@ -508,7 +524,7 @@ export default function AviatorGame() {
 
             {/* Waiting State: 5.0s Progress Bar Overlay */}
             {gameState === "WAITING" && (
-              <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center space-y-3 z-10">
+              <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 z-10">
                 <div className="text-xs uppercase font-extrabold tracking-widest text-[#FFDE59]">
                   NEXT ROUND IN
                 </div>
@@ -529,7 +545,7 @@ export default function AviatorGame() {
 
             {/* Crashed State Overlay */}
             {gameState === "CRASHED" && (
-              <div className="absolute inset-0 bg-red-950/40 backdrop-blur-xs flex flex-col items-center justify-center space-y-2 z-10 animate-in zoom-in-95 duration-200">
+              <div className="absolute inset-0 bg-red-950/40 backdrop-blur-sm flex flex-col items-center justify-center space-y-2 z-10 animate-in zoom-in-95 duration-200">
                 <div className="text-xs uppercase font-black tracking-widest text-red-500">
                   FLEW AWAY!
                 </div>

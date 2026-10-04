@@ -44,9 +44,14 @@ export default function RouletteGame() {
   const animRef = useRef<number | null>(null);
 
   // Betting States
+  const [mounted, setMounted] = useState(false);
   const [selectedChip, setSelectedChip] = useState<number>(500);
   const [bets, setBets] = useState<Record<string, number>>({});
   const [previousBets, setPreviousBets] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [landedNumber, setLandedNumber] = useState<number | null>(null);
   const [history, setHistory] = useState<number[]>([14, 32, 0, 7, 21, 9, 28, 18, 3]);
@@ -505,6 +510,17 @@ export default function RouletteGame() {
   const row1 = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36];
   const row2 = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35];
   const row3 = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34];
+
+  if (!mounted) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4 bg-[#0B0F1A] text-white">
+        <div className="w-12 h-12 rounded-full border-4 border-[#10B981] border-t-transparent animate-spin" />
+        <div className="text-xs font-mono font-bold tracking-widest uppercase text-[#FFDE59]">
+          Loading European Roulette 3D...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 sm:p-5 lg:p-7 max-w-[1500px] mx-auto space-y-6">
