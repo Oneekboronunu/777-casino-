@@ -184,8 +184,10 @@ export default function CarromGame() {
       { x: BOARD_SIZE - 38, y: BOARD_SIZE - 38 },
     ];
 
-    const friction = 0.985;
-    const bounce = 0.88;
+    // Realistic Carrom Board Physics Constants (Boric Powder Wood Friction & Cushion Damping)
+    const friction = 0.964; // authentic wood-powder sliding resistance
+    const bounce = 0.68; // realistic rubber/wood cushion absorption
+    const stopThreshold = 0.32; // crisp stop settlement without ice-gliding
 
     const loop = () => {
       if (!isRunning) return;
@@ -202,7 +204,8 @@ export default function CarromGame() {
         striker.vx *= friction;
         striker.vy *= friction;
 
-        if (Math.hypot(striker.vx, striker.vy) < 0.12) {
+        const currentSpeed = Math.hypot(striker.vx, striker.vy);
+        if (currentSpeed < stopThreshold) {
           striker.vx = 0;
           striker.vy = 0;
           striker.isMoving = false;
@@ -238,7 +241,7 @@ export default function CarromGame() {
 
         // Striker Pocket check
         pockets.forEach((p) => {
-          if (Math.hypot(striker.x - p.x, striker.y - p.y) < POCKET_RADIUS - 6) {
+          if (Math.hypot(striker.x - p.x, striker.y - p.y) < POCKET_RADIUS - 4) {
             sound.playPocketSink();
             striker.vx = 0;
             striker.vy = 0;
@@ -251,7 +254,8 @@ export default function CarromGame() {
       pucks.forEach((puck) => {
         if (puck.isPotted) return;
 
-        if (Math.hypot(puck.vx, puck.vy) > 0.12) {
+        const pSpeed = Math.hypot(puck.vx, puck.vy);
+        if (pSpeed > stopThreshold) {
           anyMoving = true;
           puck.x += puck.vx;
           puck.y += puck.vy;
@@ -284,9 +288,18 @@ export default function CarromGame() {
             sound.playCoinHit();
           }
 
-          // Check Pocket Drop
+          // Check Pocket Gravitational Suction & Drop
           pockets.forEach((pkt) => {
-            if (Math.hypot(puck.x - pkt.x, puck.y - pkt.y) < POCKET_RADIUS) {
+            const distToPocket = Math.hypot(puck.x - pkt.x, puck.y - pkt.y);
+
+            // Funnel suction if edge touches pocket
+            if (distToPocket < POCKET_RADIUS + 8) {
+              const pullAngle = Math.atan2(pkt.y - puck.y, pkt.x - puck.x);
+              puck.vx += Math.cos(pullAngle) * 0.4;
+              puck.vy += Math.sin(pullAngle) * 0.4;
+            }
+
+            if (distToPocket < POCKET_RADIUS) {
               puck.isPotted = true;
               puck.vx = 0;
               puck.vy = 0;
@@ -307,7 +320,7 @@ export default function CarromGame() {
         }
       });
 
-      // 3. STRIKER <-> PUCK COLLISIONS
+      // 3. STRIKER <-> PUCK REALISTIC 2D MOMENTUM COLLISIONS (Mass Ratio 3:1)
       if (striker.isMoving) {
         pucks.forEach((puck) => {
           if (puck.isPotted) return;
@@ -323,21 +336,28 @@ export default function CarromGame() {
 
             const kx = striker.vx - puck.vx;
             const ky = striker.vy - puck.vy;
-            const p = (2 * (nx * kx + ny * ky)) / 1.6;
+            const vn = nx * kx + ny * ky;
 
-            striker.vx -= p * 0.45 * nx;
-            striker.vy -= p * 0.45 * ny;
-            puck.vx += p * 0.95 * nx;
-            puck.vy += p * 0.95 * ny;
+            if (vn > 0) {
+              // Striker mass = 3.0, Puck mass = 1.0, Restitution = 0.82
+              const impulse = (1.82 * vn) / (1 / 3.0 + 1 / 1.0);
 
-            const overlap = minDist - dist;
-            puck.x += nx * overlap * 0.6;
-            puck.y += ny * overlap * 0.6;
+              striker.vx -= (impulse / 3.0) * nx;
+              striker.vy -= (impulse / 3.0) * ny;
+              puck.vx += (impulse / 1.0) * nx;
+              puck.vy += (impulse / 1.0) * ny;
+
+              const overlap = minDist - dist;
+              puck.x += nx * overlap * 0.7;
+              puck.y += ny * overlap * 0.7;
+              striker.x -= nx * overlap * 0.3;
+              striker.y -= ny * overlap * 0.3;
+            }
           }
         });
       }
 
-      // 4. PUCK <-> PUCK COLLISIONS
+      // 4. PUCK <-> PUCK MOMENTUM COLLISIONS (Equal Mass 1:1, Restitution 0.85)
       for (let i = 0; i < pucks.length; i++) {
         for (let j = i + 1; j < pucks.length; j++) {
           const p1 = pucks[i];
@@ -356,18 +376,22 @@ export default function CarromGame() {
 
             const kx = p1.vx - p2.vx;
             const ky = p1.vy - p2.vy;
-            const p = (nx * kx + ny * ky);
+            const vn = nx * kx + ny * ky;
 
-            p1.vx -= p * nx * 0.95;
-            p1.vy -= p * ny * 0.95;
-            p2.vx += p * nx * 0.95;
-            p2.vy += p * ny * 0.95;
+            if (vn > 0) {
+              const impulse = (1.85 * vn) / 2;
 
-            const overlap = minDist - dist;
-            p1.x -= nx * overlap * 0.5;
-            p1.y -= ny * overlap * 0.5;
-            p2.x += nx * overlap * 0.5;
-            p2.y += ny * overlap * 0.5;
+              p1.vx -= impulse * nx;
+              p1.vy -= impulse * ny;
+              p2.vx += impulse * nx;
+              p2.vy += impulse * ny;
+
+              const overlap = minDist - dist;
+              p1.x -= nx * overlap * 0.5;
+              p1.y -= ny * overlap * 0.5;
+              p2.x += nx * overlap * 0.5;
+              p2.y += ny * overlap * 0.5;
+            }
           }
         }
       }
@@ -815,7 +839,7 @@ export default function CarromGame() {
     // Minimum swipe threshold to shoot
     if (dragDist > 12) {
       const angle = Math.atan2(dy, dx);
-      const power = Math.min(24, (dragDist / 120) * 22);
+      const power = Math.min(18.5, Math.max(4, (dragDist / 100) * 16.5));
 
       sound.playStrikerFlick();
       strikerRef.current.vx = Math.cos(angle) * power;
