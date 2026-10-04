@@ -309,7 +309,7 @@ export default function HomePage() {
       </div>
 
       {/* 3. LIVE SPORTSBOOK HIGHLIGHTS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 content-lazy">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Trophy className="w-5 h-5 text-[#BA2649]" />
@@ -329,7 +329,7 @@ export default function HomePage() {
       </div>
 
       {/* 4. FEATURED CASINO ORIGINALS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 content-lazy">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Flame className="w-5 h-5 text-[#BA2649]" />
