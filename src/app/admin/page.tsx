@@ -103,6 +103,54 @@ export default function AdminPage() {
     }
   };
 
+  const handleApproveUser = async (userId: string) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: "APPROVE_USER",
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        sound.playWin();
+        showNotification(data.message || "User approved! Bonus credited.", "SUCCESS");
+        fetchAdminData();
+      } else {
+        showNotification(data.error || "Approval failed", "ERROR");
+      }
+    } catch {
+      showNotification("Error approving user", "ERROR");
+    }
+  };
+
+  const handleRejectUser = async (userId: string) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: "REJECT_USER",
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        sound.playCrash();
+        showNotification(data.message || "User application rejected", "INFO");
+        fetchAdminData();
+      } else {
+        showNotification(data.error || "Rejection failed", "ERROR");
+      }
+    } catch {
+      showNotification("Error rejecting user", "ERROR");
+    }
+  };
+
   const handleAdjustBalance = async (userId: string, amount: number) => {
     try {
       const res = await fetch("/api/admin/users", {
@@ -780,62 +828,102 @@ export default function AdminPage() {
               <thead className="text-[11px] text-gray-400 uppercase bg-[#0B0F1A] border-b border-[#23334E]">
                 <tr>
                   <th className="py-3 px-4">User / Email</th>
-                  <th className="py-3 px-4">Role / Tier</th>
+                  <th className="py-3 px-4">Role / Verification</th>
                   <th className="py-3 px-4">Real Balance</th>
                   <th className="py-3 px-4">Bonus Balance</th>
-                  <th className="py-3 px-4 text-center">Quick Adjust Balance</th>
+                  <th className="py-3 px-4 text-center">Account Action</th>
+                  <th className="py-3 px-4 text-center">Adjust Balance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#23334E]/40">
-                {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-[#151F32]/50 transition">
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-white">{u.name}</div>
-                      <div className="text-[11px] font-mono text-gray-400">{u.email}</div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        u.role === "ADMIN" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-[#10B981]/20 text-[#10B981]"
-                      }`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#10B981] text-sm">
-                      ৳{u.balance?.toLocaleString()}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#FFDE59]">
-                      ৳{u.bonusBalance?.toLocaleString() || 0}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center justify-center space-x-1.5">
-                        <button
-                          onClick={() => handleAdjustBalance(u.id, 1000)}
-                          className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
-                        >
-                          +1k
-                        </button>
-                        <button
-                          onClick={() => handleAdjustBalance(u.id, 5000)}
-                          className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
-                        >
-                          +5k
-                        </button>
-                        <button
-                          onClick={() => handleAdjustBalance(u.id, 25000)}
-                          className="px-2.5 py-1 bg-[#FFDE59]/20 hover:bg-[#FFDE59] text-[#FFDE59] hover:text-black font-bold rounded-lg border border-[#FFDE59]/40 transition text-[11px]"
-                        >
-                          +25k
-                        </button>
-                        <button
-                          onClick={() => handleAdjustBalance(u.id, -1000)}
-                          className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold rounded-lg border border-red-500/40 transition text-[11px]"
-                        >
-                          -1k
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {usersList.map((u) => {
+                  const isPending = u.isVerified === false && u.role !== "ADMIN";
+                  return (
+                    <tr key={u.id} className={`transition ${isPending ? "bg-[#F59E0B]/10 hover:bg-[#F59E0B]/15" : "hover:bg-[#151F32]/50"}`}>
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-white flex items-center space-x-1.5">
+                          {isPending && <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping" />}
+                          <span>{u.name}</span>
+                        </div>
+                        <div className="text-[11px] font-mono text-gray-400">{u.email}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            u.role === "ADMIN" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-blue-500/20 text-blue-300"
+                          }`}>
+                            {u.role}
+                          </span>
+                          <div>
+                            {isPending ? (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black bg-[#F59E0B]/20 text-[#FFDE59] border border-[#F59E0B]/40 animate-pulse inline-block">
+                                ⏳ PENDING APPROVAL
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-black bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 inline-block">
+                                ✓ VERIFIED ACTIVE
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#10B981] text-sm">
+                        ৳{u.balance?.toLocaleString()}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#FFDE59]">
+                        ৳{u.bonusBalance?.toLocaleString() || 0}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {isPending ? (
+                          <div className="flex items-center justify-center space-x-1.5">
+                            <button
+                              onClick={() => handleApproveUser(u.id)}
+                              className="px-3 py-1.5 bg-[#10B981] hover:bg-[#059669] text-black font-black text-xs rounded-xl shadow-md transition"
+                            >
+                              ✓ Approve (+৳2k)
+                            </button>
+                            <button
+                              onClick={() => handleRejectUser(u.id)}
+                              className="px-2 py-1.5 bg-red-950/40 hover:bg-red-900 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl transition"
+                            >
+                              ✕ Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-gray-500 font-bold">Approved</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-center space-x-1.5">
+                          <button
+                            onClick={() => handleAdjustBalance(u.id, 1000)}
+                            className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
+                          >
+                            +1k
+                          </button>
+                          <button
+                            onClick={() => handleAdjustBalance(u.id, 5000)}
+                            className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
+                          >
+                            +5k
+                          </button>
+                          <button
+                            onClick={() => handleAdjustBalance(u.id, 25000)}
+                            className="px-2.5 py-1 bg-[#FFDE59]/20 hover:bg-[#FFDE59] text-[#FFDE59] hover:text-black font-bold rounded-lg border border-[#FFDE59]/40 transition text-[11px]"
+                          >
+                            +25k
+                          </button>
+                          <button
+                            onClick={() => handleAdjustBalance(u.id, -1000)}
+                            className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold rounded-lg border border-red-500/40 transition text-[11px]"
+                          >
+                            -1k
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

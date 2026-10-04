@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     const passwordHash = await bcrypt.hash(password, 10);
     const newReferralCode = "AURA" + Math.floor(100000 + Math.random() * 900000);
 
+    // Create user with PENDING verification status (isVerified: false)
     const user = await prisma.user.create({
       data: {
         name,
@@ -42,35 +43,38 @@ export async function POST(req: Request) {
         phone: phone ? phone.trim() : null,
         passwordHash,
         role: "USER",
-        balance: 10000.0, // Welcome signup demo cash
-        bonusBalance: 2000.0, // 2,000 Welcome Bonus
+        isVerified: false, // Requires Admin Approval
+        balance: 0.0,
+        bonusBalance: 0.0,
         currency: "BDT",
         referralCode: newReferralCode,
         referredBy: referralCode ? referralCode.trim() : null,
       },
     });
 
-    // Create a welcome transaction record
+    // Create initial Pending Registration transaction
     await prisma.transaction.create({
       data: {
         userId: user.id,
         type: "BONUS_CLAIM",
         amount: 2000.0,
-        method: "System",
-        status: "COMPLETED",
-        note: "Welcome Registration Bonus credited",
+        method: "Admin Verification",
+        status: "PENDING",
+        note: `Registration received. Pending verification by Admin (notified at yasinworks925@gmail.com).`,
       },
     });
 
+    console.log(`[ADMIN NOTIFICATION EVENT] New user registered: ${name} (${normalizedEmail}, Phone: ${phone || 'N/A'}). Sent notification to admin: yasinworks925@gmail.com`);
+
     return NextResponse.json({
       success: true,
+      pendingApproval: true,
+      message: "Registration submitted successfully! Your account has been sent to the Admin for approval. You will receive confirmation once approved.",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        balance: user.balance,
-        bonusBalance: user.bonusBalance,
-        role: user.role,
+        isVerified: false,
       },
     });
   } catch (error) {

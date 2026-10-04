@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
-import { X, ShieldCheck, User, Lock, Mail, Phone, ArrowRight, Sparkles, Flame } from "lucide-react";
+import { X, ShieldCheck, User, Lock, Mail, Phone, ArrowRight, Sparkles, Flame, CheckCircle2 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import { signInWithGoogle } from "@/lib/firebase";
 import sound from "@/lib/sound";
@@ -71,6 +71,8 @@ export default function AuthModal() {
     }
   };
 
+  const [registeredSuccessMsg, setRegisteredSuccessMsg] = useState<string | null>(null);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !emailOrPhone || !password) {
@@ -95,14 +97,8 @@ export default function AuthModal() {
       const data = await res.json();
       if (res.ok) {
         sound.playWin();
-        await signIn("credentials", {
-          redirect: false,
-          identifier: emailOrPhone,
-          password,
-        });
-        await fetchUser();
-        showNotification("Registration successful! Welcome bonus credited.", "SUCCESS");
-        closeAuthModal();
+        setRegisteredSuccessMsg(`Registration received for ${name}! Details sent to Admin (yasinworks925@gmail.com). Once approved, your ৳2,000 bonus will be active.`);
+        showNotification("Account created! Pending Admin approval.", "SUCCESS");
       } else {
         showNotification(data.error || "Registration failed", "ERROR");
       }
@@ -243,8 +239,30 @@ export default function AuthModal() {
             </div>
           )}
 
-          {/* Form */}
-          {authModalMode === "LOGIN" ? (
+          {registeredSuccessMsg ? (
+            <div className="p-5 bg-[#10B981]/15 border-2 border-[#10B981]/40 rounded-2xl text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-black text-white">Application Received!</h4>
+              <p className="text-xs text-gray-300 leading-relaxed">
+                {registeredSuccessMsg}
+              </p>
+              <div className="p-2.5 bg-[#0B0F1A] rounded-xl border border-[#23334E] text-[11px] text-[#FFDE59] font-mono">
+                Admin Notification Sent to: yasinworks925@gmail.com
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRegisteredSuccessMsg(null);
+                  openAuthModal("LOGIN");
+                }}
+                className="btn-burgundy w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-xl"
+              >
+                Go to Sign In
+              </button>
+            </div>
+          ) : authModalMode === "LOGIN" ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();

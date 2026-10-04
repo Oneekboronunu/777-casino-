@@ -49,6 +49,11 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        // Verification check
+        if (user.role !== "ADMIN" && user.isVerified === false) {
+          throw new Error("Your registration is currently PENDING Admin approval. Once the Admin approves your account, you will receive confirmation and full access.");
+        }
+
         return {
           id: user.id,
           name: user.name,
@@ -57,7 +62,8 @@ export const authOptions: NextAuthOptions = {
           balance: user.balance,
           bonusBalance: user.bonusBalance,
           currency: user.currency,
-        };
+          isVerified: user.isVerified,
+        } as any;
       },
     }),
   ],
@@ -69,6 +75,7 @@ export const authOptions: NextAuthOptions = {
         token.balance = (user as any).balance;
         token.bonusBalance = (user as any).bonusBalance;
         token.currency = (user as any).currency;
+        token.isVerified = (user as any).isVerified;
       }
 
       if (trigger === "update" && session) {
@@ -85,6 +92,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).balance = token.balance;
         (session.user as any).bonusBalance = token.bonusBalance;
         (session.user as any).currency = token.currency;
+        (session.user as any).isVerified = token.isVerified;
       }
       return session;
     },
