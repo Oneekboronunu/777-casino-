@@ -1,26 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Bungee, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import RootLayoutClient from "@/components/layout/RootLayoutClient";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
-
-const bungee = Bungee({
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-retro",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-playfair",
-});
 
 export const viewport: Viewport = {
   themeColor: "#120B10",
@@ -54,10 +34,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${inter.variable} ${bungee.variable} ${playfair.variable}`}>
+    <html lang="en" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Bungee&family=Playfair+Display:wght@700;900&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className="bg-[#120B10] text-[#F8F4EE] min-h-screen antialiased selection:bg-[#BA2649] selection:text-[#FFDE59]">
         <RootLayoutClient>{children}</RootLayoutClient>

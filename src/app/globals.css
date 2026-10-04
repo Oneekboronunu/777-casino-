@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --font-inter: var(--font-inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  --font-display: var(--font-inter, sans-serif);
-  --font-retro: var(--font-retro, 'Impact', 'Arial Black', sans-serif);
-  --font-playfair: var(--font-playfair, Georgia, serif);
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Inter', sans-serif;
+  --font-retro: 'Bungee', 'Impact', 'Arial Black', sans-serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
 }
 
 * {
