@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import { X, CheckCircle, ShieldCheck, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
-import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 const WITHDRAW_METHODS = [
   { id: "bKash", name: "bKash", logoColor: "#E2136E", fee: "0% Free", LogoComponent: BKashLogo },
   { id: "Nagad", name: "Nagad", logoColor: "#F7931E", fee: "0% Free", LogoComponent: NagadLogo },
   { id: "Rocket", name: "Rocket", logoColor: "#8C3494", fee: "0% Free", LogoComponent: RocketLogo },
+  { id: "Upay", name: "Upay", logoColor: "#0D2040", fee: "0% Free", LogoComponent: UpayLogo },
   { id: "Bank", name: "Bank Transfer", logoColor: "#0D5CAB", fee: "0% Free", LogoComponent: BankLogo },
 ];
 

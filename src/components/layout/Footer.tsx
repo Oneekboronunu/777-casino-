@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ShieldCheck, Lock, Award, Flame, CreditCard } from "lucide-react";
-import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function Footer() {
   return (
@@ -16,6 +16,7 @@ export default function Footer() {
             <BKashLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <NagadLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <RocketLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
+            <UpayLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <BankLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white hover:scale-105 transition">
               <CreditCard className="w-4 h-4 text-[#D4AF37]" />

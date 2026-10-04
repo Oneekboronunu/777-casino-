@@ -1,58 +1,50 @@
 import React from "react";
+import Image from "next/image";
 
 interface LogoProps {
   className?: string;
-  variant?: "full" | "icon" | "badge";
-  size?: "sm" | "md" | "lg";
+  variant?: "full" | "icon" | "badge" | "image";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 // ==================== BKASH LOGO ====================
 export function BKashLogo({ className = "", variant = "full", size = "md" }: LogoProps) {
-  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : "w-8 h-8";
-  
+  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : size === "xl" ? "w-14 h-14" : "w-8 h-8";
+  const imgHeight = size === "sm" ? 22 : size === "lg" ? 38 : size === "xl" ? 48 : 30;
+
   if (variant === "icon") {
     return (
-      <div className={`relative flex items-center justify-center rounded-xl bg-[#E2136E] text-white shadow-md shadow-[#E2136E]/30 ${iconSize} ${className}`}>
-        <svg viewBox="0 0 40 40" fill="currentColor" className="w-4/5 h-4/5">
-          {/* bKash iconic Origami Bird */}
-          <path d="M6 20L18 8L28 18L18 28L6 20Z" fill="#FFFFFF" fillOpacity="0.9" />
-          <path d="M18 8L34 14L28 18L18 8Z" fill="#FFFFFF" />
-          <path d="M18 28L34 22L28 18L18 28Z" fill="#FFFFFF" fillOpacity="0.7" />
-          <path d="M28 18L38 20L34 14L28 18Z" fill="#FFFFFF" fillOpacity="0.5" />
-        </svg>
+      <div className={`relative flex items-center justify-center rounded-xl bg-white p-1 shadow-md border border-gray-200 flex-shrink-0 ${iconSize} ${className}`}>
+        <img
+          src="/images/payments/bkash.png"
+          alt="bKash"
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
 
   if (variant === "badge") {
     return (
-      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#E2136E]/15 border border-[#E2136E]/40 text-white ${className}`}>
-        <div className="w-5 h-5 rounded-lg bg-[#E2136E] flex items-center justify-center flex-shrink-0 p-0.5">
-          <svg viewBox="0 0 40 40" fill="currentColor" className="w-full h-full text-white">
-            <path d="M6 20L18 8L28 18L18 28L6 20Z" fill="#FFFFFF" />
-            <path d="M18 8L34 14L28 18L18 8Z" fill="#FFFFFF" />
-            <path d="M18 28L34 22L28 18L18 28Z" fill="#FFFFFF" fillOpacity="0.8" />
-          </svg>
-        </div>
-        <span className="font-extrabold text-xs tracking-wider text-[#FF65A5]">bKash</span>
+      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white text-gray-900 border border-gray-200 shadow-md ${className}`}>
+        <img
+          src="/images/payments/bkash.png"
+          alt="bKash"
+          className="h-5 w-auto object-contain"
+        />
       </div>
     );
   }
 
   return (
     <div className={`inline-flex items-center space-x-2.5 ${className}`}>
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#E2136E] to-[#C20E5C] text-white shadow-lg shadow-[#E2136E]/25 flex-shrink-0 ${iconSize}`}>
-        <svg viewBox="0 0 40 40" fill="currentColor" className="w-3/4 h-3/4">
-          <path d="M6 20L18 8L28 18L18 28L6 20Z" fill="#FFFFFF" fillOpacity="0.95" />
-          <path d="M18 8L34 14L28 18L18 8Z" fill="#FFFFFF" />
-          <path d="M18 28L34 22L28 18L18 28Z" fill="#FFFFFF" fillOpacity="0.75" />
-        </svg>
-      </div>
-      <div className="flex flex-col">
-        <span className="font-black text-sm tracking-tight text-white flex items-center leading-none">
-          <span className="text-[#FF4A98]">b</span>Kash
-        </span>
-        <span className="text-[10px] text-pink-300 font-medium tracking-wide">Personal Send</span>
+      <div className="bg-white px-2.5 py-1.5 rounded-xl shadow-md border border-gray-200/80 flex items-center justify-center flex-shrink-0">
+        <img
+          src="/images/payments/bkash.png"
+          alt="bKash"
+          style={{ height: `${imgHeight}px` }}
+          className="w-auto object-contain"
+        />
       </div>
     </div>
   );
@@ -60,49 +52,42 @@ export function BKashLogo({ className = "", variant = "full", size = "md" }: Log
 
 // ==================== NAGAD LOGO ====================
 export function NagadLogo({ className = "", variant = "full", size = "md" }: LogoProps) {
-  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : "w-8 h-8";
+  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : size === "xl" ? "w-14 h-14" : "w-8 h-8";
+  const imgHeight = size === "sm" ? 22 : size === "lg" ? 38 : size === "xl" ? 48 : 30;
 
   if (variant === "icon") {
     return (
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F7931E] via-[#F15A24] to-[#C1272D] text-white shadow-md shadow-[#F7931E]/30 ${iconSize} ${className}`}>
-        <svg viewBox="0 0 40 40" fill="none" className="w-4/5 h-4/5">
-          {/* Nagad Swirl / Flame */}
-          <path d="M20 5C14 12 11 17 11 22C11 27.5 15 32 20 32C25 32 29 27.5 29 22C29 16 23 11 20 5Z" fill="#FFFFFF" />
-          <path d="M20 12C17 16 15 19 15 22C15 25 17 28 20 28C23 28 25 25 25 22C25 18 22 15 20 12Z" fill="#F15A24" />
-          <circle cx="20" cy="22" r="3" fill="#FFFFFF" />
-        </svg>
+      <div className={`relative flex items-center justify-center rounded-xl bg-white p-1 shadow-md border border-gray-200 flex-shrink-0 ${iconSize} ${className}`}>
+        <img
+          src="/images/payments/nagad.png"
+          alt="Nagad"
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
 
   if (variant === "badge") {
     return (
-      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#F7931E]/15 border border-[#F7931E]/40 text-white ${className}`}>
-        <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#F7931E] to-[#F15A24] flex items-center justify-center flex-shrink-0 p-0.5">
-          <svg viewBox="0 0 40 40" fill="none" className="w-full h-full">
-            <path d="M20 5C14 12 11 17 11 22C11 27.5 15 32 20 32C25 32 29 27.5 29 22C29 16 23 11 20 5Z" fill="#FFFFFF" />
-            <circle cx="20" cy="22" r="3" fill="#F15A24" />
-          </svg>
-        </div>
-        <span className="font-extrabold text-xs tracking-wider text-[#FFA842]">Nagad</span>
+      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white text-gray-900 border border-gray-200 shadow-md ${className}`}>
+        <img
+          src="/images/payments/nagad.png"
+          alt="Nagad"
+          className="h-5 w-auto object-contain"
+        />
       </div>
     );
   }
 
   return (
     <div className={`inline-flex items-center space-x-2.5 ${className}`}>
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#F7931E] via-[#F15A24] to-[#C1272D] text-white shadow-lg shadow-[#F7931E]/25 flex-shrink-0 ${iconSize}`}>
-        <svg viewBox="0 0 40 40" fill="none" className="w-3/4 h-3/4">
-          <path d="M20 5C14 12 11 17 11 22C11 27.5 15 32 20 32C25 32 29 27.5 29 22C29 16 23 11 20 5Z" fill="#FFFFFF" />
-          <path d="M20 12C17 16 15 19 15 22C15 25 17 28 20 28C23 28 25 25 25 22C25 18 22 15 20 12Z" fill="#F15A24" />
-          <circle cx="20" cy="22" r="3" fill="#FFFFFF" />
-        </svg>
-      </div>
-      <div className="flex flex-col">
-        <span className="font-black text-sm tracking-tight text-white leading-none">
-          <span className="text-[#FFA842]">নগদ</span> <span className="text-gray-300 font-bold text-xs">(Nagad)</span>
-        </span>
-        <span className="text-[10px] text-amber-300/80 font-medium tracking-wide">Personal Send</span>
+      <div className="bg-white px-2.5 py-1.5 rounded-xl shadow-md border border-gray-200/80 flex items-center justify-center flex-shrink-0">
+        <img
+          src="/images/payments/nagad.png"
+          alt="Nagad"
+          style={{ height: `${imgHeight}px` }}
+          className="w-auto object-contain"
+        />
       </div>
     </div>
   );
@@ -110,53 +95,85 @@ export function NagadLogo({ className = "", variant = "full", size = "md" }: Log
 
 // ==================== ROCKET LOGO ====================
 export function RocketLogo({ className = "", variant = "full", size = "md" }: LogoProps) {
-  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : "w-8 h-8";
+  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : size === "xl" ? "w-14 h-14" : "w-8 h-8";
+  const imgHeight = size === "sm" ? 22 : size === "lg" ? 38 : size === "xl" ? 48 : 30;
 
   if (variant === "icon") {
     return (
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#8C3494] via-[#701E78] to-[#4A0E50] text-white shadow-md shadow-[#8C3494]/30 ${iconSize} ${className}`}>
-        <svg viewBox="0 0 40 40" fill="none" className="w-4/5 h-4/5">
-          {/* Rocket Ship Icon */}
-          <path d="M20 6C20 6 26 12 26 22L20 20L14 22C14 12 20 6 20 6Z" fill="#FFFFFF" />
-          <path d="M14 22L9 26L12 29L15 26L14 22Z" fill="#F5A623" />
-          <path d="M26 22L31 26L28 29L25 26L26 22Z" fill="#F5A623" />
-          <path d="M18 22L20 33L22 22L18 22Z" fill="#E2136E" />
-          <circle cx="20" cy="15" r="2.5" fill="#8C3494" />
-        </svg>
+      <div className={`relative flex items-center justify-center rounded-xl bg-[#8C3494] p-1 shadow-md border border-purple-400/40 flex-shrink-0 ${iconSize} ${className}`}>
+        <img
+          src="/images/payments/rocket.png"
+          alt="Rocket"
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
 
   if (variant === "badge") {
     return (
-      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#8C3494]/15 border border-[#8C3494]/40 text-white ${className}`}>
-        <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#8C3494] to-[#5C1662] flex items-center justify-center flex-shrink-0 p-0.5">
-          <svg viewBox="0 0 40 40" fill="none" className="w-full h-full">
-            <path d="M20 6C20 6 26 12 26 22L20 20L14 22C14 12 20 6 20 6Z" fill="#FFFFFF" />
-            <circle cx="20" cy="15" r="2.5" fill="#8C3494" />
-          </svg>
-        </div>
-        <span className="font-extrabold text-xs tracking-wider text-[#C87BD2]">Rocket</span>
+      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#8C3494] text-white border border-purple-400/40 shadow-md ${className}`}>
+        <img
+          src="/images/payments/rocket.png"
+          alt="Rocket"
+          className="h-5 w-auto object-contain"
+        />
       </div>
     );
   }
 
   return (
     <div className={`inline-flex items-center space-x-2.5 ${className}`}>
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#8C3494] via-[#701E78] to-[#4A0E50] text-white shadow-lg shadow-[#8C3494]/25 flex-shrink-0 ${iconSize}`}>
-        <svg viewBox="0 0 40 40" fill="none" className="w-3/4 h-3/4">
-          <path d="M20 6C20 6 26 12 26 22L20 20L14 22C14 12 20 6 20 6Z" fill="#FFFFFF" />
-          <path d="M14 22L9 26L12 29L15 26L14 22Z" fill="#F5A623" />
-          <path d="M26 22L31 26L28 29L25 26L26 22Z" fill="#F5A623" />
-          <path d="M18 22L20 33L22 22L18 22Z" fill="#E2136E" />
-          <circle cx="20" cy="15" r="2.5" fill="#8C3494" />
-        </svg>
+      <div className="bg-[#701E78] px-2.5 py-1.5 rounded-xl shadow-md border border-purple-400/50 flex items-center justify-center flex-shrink-0">
+        <img
+          src="/images/payments/rocket.png"
+          alt="Rocket"
+          style={{ height: `${imgHeight}px` }}
+          className="w-auto object-contain"
+        />
       </div>
-      <div className="flex flex-col">
-        <span className="font-black text-sm tracking-tight text-white leading-none">
-          <span className="text-[#C87BD2]">DBBL</span> Rocket
-        </span>
-        <span className="text-[10px] text-purple-300 font-medium tracking-wide">Personal / Agent</span>
+    </div>
+  );
+}
+
+// ==================== UPAY LOGO ====================
+export function UpayLogo({ className = "", variant = "full", size = "md" }: LogoProps) {
+  const iconSize = size === "sm" ? "w-6 h-6" : size === "lg" ? "w-10 h-10" : size === "xl" ? "w-14 h-14" : "w-8 h-8";
+  const imgHeight = size === "sm" ? 22 : size === "lg" ? 38 : size === "xl" ? 48 : 30;
+
+  if (variant === "icon") {
+    return (
+      <div className={`relative flex items-center justify-center rounded-xl bg-white p-1 shadow-md border border-gray-200 flex-shrink-0 ${iconSize} ${className}`}>
+        <img
+          src="/images/payments/upay.png"
+          alt="Upay"
+          className="w-full h-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  if (variant === "badge") {
+    return (
+      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white text-gray-900 border border-gray-200 shadow-md ${className}`}>
+        <img
+          src="/images/payments/upay.png"
+          alt="Upay"
+          className="h-5 w-auto object-contain"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`inline-flex items-center space-x-2.5 ${className}`}>
+      <div className="bg-white px-2.5 py-1.5 rounded-xl shadow-md border border-gray-200/80 flex items-center justify-center flex-shrink-0">
+        <img
+          src="/images/payments/upay.png"
+          alt="Upay"
+          style={{ height: `${imgHeight}px` }}
+          className="w-auto object-contain"
+        />
       </div>
     </div>
   );
@@ -183,9 +200,9 @@ export function BankLogo({ className = "", variant = "full", size = "md" }: Logo
 
   if (variant === "badge") {
     return (
-      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#0D5CAB]/15 border border-[#0D5CAB]/40 text-white ${className}`}>
-        <div className="w-5 h-5 rounded-lg bg-[#0D5CAB] flex items-center justify-center flex-shrink-0 p-0.5">
-          <svg viewBox="0 0 40 40" fill="currentColor" className="w-3/4 h-3/4">
+      <div className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-[#0D5CAB] border border-[#0D5CAB]/40 text-white shadow-md ${className}`}>
+        <div className="w-4 h-4 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 40 40" fill="currentColor" className="w-full h-full text-white">
             <path d="M20 7L6 14V17H34V14L20 7Z" />
             <rect x="9" y="19" width="3" height="10" />
             <rect x="18.5" y="19" width="3" height="10" />
@@ -193,7 +210,7 @@ export function BankLogo({ className = "", variant = "full", size = "md" }: Logo
             <rect x="6" y="30" width="28" height="3" />
           </svg>
         </div>
-        <span className="font-extrabold text-xs tracking-wider text-[#6DB1FF]">Bank Transfer</span>
+        <span className="font-extrabold text-xs tracking-wider text-white">Bank Transfer</span>
       </div>
     );
   }
@@ -227,6 +244,7 @@ export function PaymentMethodsRibbon({ className = "" }: { className?: string })
       <BKashLogo variant="badge" />
       <NagadLogo variant="badge" />
       <RocketLogo variant="badge" />
+      <UpayLogo variant="badge" />
       <BankLogo variant="badge" />
     </div>
   );

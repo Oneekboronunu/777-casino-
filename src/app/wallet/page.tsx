@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
-import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function WalletPage() {
   const { user, setIsDepositModalOpen, setIsWithdrawModalOpen } = useUserStore();
@@ -137,7 +137,7 @@ export default function WalletPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 pt-1">
           {/* bKash Card */}
           <div 
             onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
@@ -167,6 +167,17 @@ export default function WalletPage() {
           >
             <RocketLogo variant="full" />
             <span className="text-[10px] font-extrabold text-[#C87BD2] bg-[#8C3494]/20 px-2 py-1 rounded-lg border border-[#8C3494]/40 group-hover:bg-[#8C3494] group-hover:text-white transition">
+              Deposit
+            </span>
+          </div>
+
+          {/* Upay Card */}
+          <div 
+            onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+            className="cursor-pointer p-4 rounded-xl bg-gradient-to-br from-[#111e2b] to-[#141b2b] border border-[#FFD200]/30 hover:border-[#FFD200] transition-all hover:scale-[1.02] shadow-lg flex items-center justify-between group"
+          >
+            <UpayLogo variant="full" />
+            <span className="text-[10px] font-extrabold text-[#FFD200] bg-[#FFD200]/20 px-2 py-1 rounded-lg border border-[#FFD200]/40 group-hover:bg-[#FFD200] group-hover:text-black transition">
               Deposit
             </span>
           </div>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { X, CheckCircle, Copy, ShieldCheck, Gift, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
-import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 const PAYMENT_METHODS = [
   {
@@ -33,6 +33,15 @@ const PAYMENT_METHODS = [
     type: "Personal / Agent",
     instructions: "Dial *322# or use Rocket App > Send Money > Enter Rocket Number > Complete Transfer > Enter TxID.",
     LogoComponent: RocketLogo,
+  },
+  {
+    id: "Upay",
+    name: "Upay (UCB)",
+    logoColor: "#0D2040",
+    number: "01622-445566",
+    type: "Personal Send Money",
+    instructions: "Open Upay App > Send Money > Enter Upay Number > Enter Amount > Enter PIN > Submit TxID.",
+    LogoComponent: UpayLogo,
   },
   {
     id: "Bank",

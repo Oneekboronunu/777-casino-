@@ -22,7 +22,7 @@ import {
 import LiveMatchBanner from "@/components/sports/LiveMatchBanner";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
-import { BKashLogo, NagadLogo, RocketLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
@@ -291,6 +291,12 @@ export default function HomePage() {
               className="cursor-pointer hover:scale-105 transition transform"
             >
               <RocketLogo variant="badge" />
+            </div>
+            <div 
+              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
+              className="cursor-pointer hover:scale-105 transition transform"
+            >
+              <UpayLogo variant="badge" />
             </div>
             <div 
               onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
