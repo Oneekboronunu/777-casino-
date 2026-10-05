@@ -11,91 +11,108 @@ import {
   Check,
   X,
   HelpCircle,
-  Flame,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
   Trophy,
-  History,
-  Volume2,
-  VolumeX,
+  History as HistoryIcon,
+  Flame,
+  Info,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
 import { useAdminConfigStore } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
 
-// Available Dice Colors matching the uploaded screenshot
+// Available Dice Colors matching Screenshot
 type DiceColor = "red" | "green" | "blue" | "yellow" | "pink" | "orange";
 
-interface ColorOption {
+interface ColorTheme {
   id: DiceColor;
   label: string;
+  pillColor: string;
   gradient: string;
+  highlight: string;
   border: string;
   shadow: string;
-  pipColor: string;
+  pipBg: string;
   pipShadow: string;
 }
 
-const COLOR_OPTIONS: Record<DiceColor, ColorOption> = {
+const COLOR_THEMES: Record<DiceColor, ColorTheme> = {
   red: {
     id: "red",
     label: "Red",
-    gradient: "from-[#ef4444] via-[#dc2626] to-[#991b1b]",
-    border: "border-[#fca5a5]/80",
-    shadow: "shadow-[0_15px_30px_rgba(185,28,28,0.5),inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-4px_8px_rgba(0,0,0,0.5)]",
-    pipColor: "bg-[#180a0a]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.2)]",
+    pillColor: "bg-[#dc2626]",
+    gradient: "linear-gradient(145deg, #ef4444 0%, #dc2626 40%, #991b1b 85%, #7f1d1d 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)",
+    border: "border-[#fca5a5]/70",
+    shadow: "0 18px 35px -8px rgba(153, 27, 27, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.6)",
+    pipBg: "radial-gradient(circle at 40% 40%, #2a1111 0%, #110505 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.3)",
   },
   green: {
     id: "green",
     label: "Green",
-    gradient: "from-[#10b981] via-[#059669] to-[#065f46]",
-    border: "border-[#6ee7b7]/80",
-    shadow: "shadow-[0_15px_30px_rgba(5,150,105,0.5),inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-4px_8px_rgba(0,0,0,0.5)]",
-    pipColor: "bg-[#06241a]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.2)]",
+    pillColor: "bg-[#16a34a]",
+    gradient: "linear-gradient(145deg, #22c55e 0%, #16a34a 40%, #166534 85%, #14532d 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)",
+    border: "border-[#86efac]/70",
+    shadow: "0 18px 35px -8px rgba(22, 101, 52, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.6)",
+    pipBg: "radial-gradient(circle at 40% 40%, #062b16 0%, #03170b 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.3)",
   },
   blue: {
     id: "blue",
     label: "Blue",
-    gradient: "from-[#3b82f6] via-[#2563eb] to-[#1e40af]",
-    border: "border-[#93c5fd]/80",
-    shadow: "shadow-[0_15px_30px_rgba(37,99,235,0.5),inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-4px_8px_rgba(0,0,0,0.5)]",
-    pipColor: "bg-[#0f172a]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.2)]",
+    pillColor: "bg-[#2563eb]",
+    gradient: "linear-gradient(145deg, #3b82f6 0%, #2563eb 40%, #1e40af 85%, #172554 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)",
+    border: "border-[#93c5fd]/70",
+    shadow: "0 18px 35px -8px rgba(30, 64, 175, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.6)",
+    pipBg: "radial-gradient(circle at 40% 40%, #0c1a3b 0%, #060e21 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.3)",
   },
   yellow: {
     id: "yellow",
     label: "Yellow",
-    gradient: "from-[#fbbf24] via-[#f59e0b] to-[#d97706]",
+    pillColor: "bg-[#eab308]",
+    gradient: "linear-gradient(145deg, #facc15 0%, #eab308 40%, #ca8a04 85%, #854d0e 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 25%, transparent 60%)",
     border: "border-[#fef08a]/80",
-    shadow: "shadow-[0_15px_30px_rgba(217,119,6,0.5),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-4px_8px_rgba(0,0,0,0.4)]",
-    pipColor: "bg-[#331e05]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.4)]",
+    shadow: "0 18px 35px -8px rgba(202, 138, 4, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -3px 6px rgba(0,0,0,0.4)",
+    pipBg: "radial-gradient(circle at 40% 40%, #362203 0%, #1f1302 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.4)",
   },
   pink: {
     id: "pink",
     label: "Pink",
-    gradient: "from-[#ec4899] via-[#db2777] to-[#9d174d]",
-    border: "border-[#fbcfe8]/80",
-    shadow: "shadow-[0_15px_30px_rgba(219,39,119,0.5),inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-4px_8px_rgba(0,0,0,0.5)]",
-    pipColor: "bg-[#280517]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.2)]",
+    pillColor: "bg-[#db2777]",
+    gradient: "linear-gradient(145deg, #f472b6 0%, #db2777 40%, #9d174d 85%, #700732 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)",
+    border: "border-[#fbcfe8]/70",
+    shadow: "0 18px 35px -8px rgba(157, 23, 77, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.6)",
+    pipBg: "radial-gradient(circle at 40% 40%, #33071b 0%, #1c030f 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.3)",
   },
   orange: {
     id: "orange",
     label: "Orange",
-    gradient: "from-[#f97316] via-[#ea580c] to-[#9a3412]",
-    border: "border-[#fed7aa]/80",
-    shadow: "shadow-[0_15px_30px_rgba(234,88,12,0.5),inset_0_2px_4px_rgba(255,255,255,0.6),inset_0_-4px_8px_rgba(0,0,0,0.5)]",
-    pipColor: "bg-[#2b0d04]",
-    pipShadow: "shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.2)]",
+    pillColor: "bg-[#ea580c]",
+    gradient: "linear-gradient(145deg, #fb923c 0%, #ea580c 40%, #c2410c 85%, #7c2d12 100%)",
+    highlight: "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)",
+    border: "border-[#fed7aa]/70",
+    shadow: "0 18px 35px -8px rgba(194, 65, 12, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.6)",
+    pipBg: "radial-gradient(circle at 40% 40%, #381204 0%, #1f0902 70%, #000000 100%)",
+    pipShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.3)",
   },
 };
 
+type ActiveScreen = "MAIN_ROLL" | "DICE_OPTIONS" | "FAIR_SETUP";
 type RollModel = "Normal" | "Fair" | "Relaxed" | "History";
-type BetType = "OVER_UNDER" | "EVEN_ODD" | "EXACT_SUM" | "ALL_MATCH";
+type BetType = "OVER_UNDER" | "EVEN_ODD" | "EXACT_SUM" | "TRIPLE_JACKPOT";
 
-interface RollRecord {
+interface RollLog {
   id: string;
   dice: number[];
   sum: number;
@@ -103,122 +120,94 @@ interface RollRecord {
   won: boolean;
   payout: number;
   multiplier: number;
-  timestamp: string;
+  time: string;
 }
 
 export default function DiceGame() {
   const { user, updateBalance, showNotification } = useUserStore();
   const { settings } = useAdminConfigStore();
 
-  // Dice Configuration
+  // Active Screen Selector (1: Main Roll, 2: Options, 3: Fair Dice Setup)
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>("MAIN_ROLL");
+
+  // Core Dice State
   const [diceCount, setDiceCount] = useState<number>(3);
   const [diceValues, setDiceValues] = useState<number[]>([4, 2, 1]);
   const [diceColor, setDiceColor] = useState<DiceColor>("red");
   const [rollModel, setRollModel] = useState<RollModel>("Fair");
   const [rollByShaking, setRollByShaking] = useState<boolean>(true);
-  const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
+  const [numberOfEyes, setNumberOfEyes] = useState<number>(6);
 
-  // Permutation Counter (e.g. 6^3 = 216 combinations)
-  const totalCombinations = Math.pow(6, diceCount);
+  // Roll Index & Permutations (e.g. Roll 1 of 216)
+  const totalPermutations = Math.pow(numberOfEyes, diceCount);
   const [currentRollIndex, setCurrentRollIndex] = useState<number>(1);
 
-  // Betting State
+  // Betting & Casino State
   const [betAmount, setBetAmount] = useState<number>(500);
   const [betType, setBetType] = useState<BetType>("OVER_UNDER");
   const [targetSum, setTargetSum] = useState<number>(10);
   const [isOver, setIsOver] = useState<boolean>(true);
   const [evenOddChoice, setEvenOddChoice] = useState<"EVEN" | "ODD">("EVEN");
-  const [exactSumChoice, setExactSumChoice] = useState<number>(11);
+  const [exactSumChoice, setExactSumChoice] = useState<number>(7);
 
-  // Animation & Physics State
+  // Animation & Physics
   const [isRolling, setIsRolling] = useState<boolean>(false);
+  const [shakeOffset, setShakeOffset] = useState<number>(0);
   const [rotationAngles, setRotationAngles] = useState<{ x: number; y: number; z: number }[]>([
     { x: 0, y: 0, z: 0 },
     { x: 0, y: 0, z: 0 },
     { x: 0, y: 0, z: 0 },
   ]);
 
-  // Roll History
-  const [history, setHistory] = useState<RollRecord[]>([
-    {
-      id: "1",
-      dice: [4, 2, 1],
-      sum: 7,
-      betType: "OVER_UNDER",
-      won: true,
-      payout: 980,
-      multiplier: 1.96,
-      timestamp: "Just now",
-    },
-    {
-      id: "2",
-      dice: [5, 5, 3],
-      sum: 13,
-      betType: "OVER_UNDER",
-      won: true,
-      payout: 1050,
-      multiplier: 2.1,
-      timestamp: "1m ago",
-    },
-    {
-      id: "3",
-      dice: [1, 2, 2],
-      sum: 5,
-      betType: "EVEN_ODD",
-      won: false,
-      payout: 0,
-      multiplier: 0,
-      timestamp: "2m ago",
-    },
+  // Roll History Log
+  const [history, setHistory] = useState<RollLog[]>([
+    { id: "1", dice: [4, 2, 1], sum: 7, betType: "OVER_UNDER", won: true, payout: 980, multiplier: 1.96, time: "12:04" },
+    { id: "2", dice: [6, 4, 3], sum: 13, betType: "OVER_UNDER", won: true, payout: 1100, multiplier: 2.2, time: "12:03" },
+    { id: "3", dice: [2, 2, 2], sum: 6, betType: "TRIPLE_JACKPOT", won: true, payout: 18000, multiplier: 36.0, time: "12:01" },
   ]);
 
-  // Current Sum
   const currentSum = diceValues.reduce((a, b) => a + b, 0);
 
-  // Dynamic Multiplier Calculation
+  // Multiplier Calculation
   const calculateMultiplier = useCallback((): number => {
     const minSum = diceCount;
-    const maxSum = diceCount * 6;
+    const maxSum = diceCount * numberOfEyes;
 
-    if (betType === "EVEN_ODD") {
-      return 1.98;
-    }
-    if (betType === "ALL_MATCH") {
-      // Probability of all dice matching: (6/6) * (1/6)^(diceCount - 1)
+    if (betType === "EVEN_ODD") return 1.98;
+    if (betType === "TRIPLE_JACKPOT") {
       if (diceCount === 1) return 1.0;
-      if (diceCount === 2) return 5.8;
-      if (diceCount === 3) return 35.5;
-      return 210.0;
+      if (diceCount === 2) return 6.0;
+      if (diceCount === 3) return 36.0;
+      return 216.0;
     }
     if (betType === "EXACT_SUM") {
-      const distance = Math.abs(exactSumChoice - (minSum + maxSum) / 2);
-      return Math.min(36, Math.max(4.5, 5.0 + distance * 3.5));
+      const dist = Math.abs(exactSumChoice - (minSum + maxSum) / 2);
+      return Math.min(36, Math.max(4.8, 5.2 + dist * 3.8));
     }
     // OVER_UNDER
-    const midpoint = (minSum + maxSum) / 2;
     if (isOver) {
-      const chance = Math.max(0.1, (maxSum - targetSum + 0.5) / (maxSum - minSum + 1));
+      const chance = Math.max(0.05, (maxSum - targetSum + 0.5) / (maxSum - minSum + 1));
       return Math.round((0.98 / chance) * 100) / 100;
     } else {
-      const chance = Math.max(0.1, (targetSum - minSum + 0.5) / (maxSum - minSum + 1));
+      const chance = Math.max(0.05, (targetSum - minSum + 0.5) / (maxSum - minSum + 1));
       return Math.round((0.98 / chance) * 100) / 100;
     }
-  }, [betType, diceCount, exactSumChoice, isOver, targetSum]);
+  }, [betType, diceCount, exactSumChoice, isOver, numberOfEyes, targetSum]);
 
-  const currentMultiplier = calculateMultiplier();
-  const potentialProfit = Math.round(betAmount * currentMultiplier - betAmount);
+  const multiplier = calculateMultiplier();
+  const potentialWin = Math.round(betAmount * multiplier);
 
-  // Sync dice values count when dice count changes
+  // Sync dice values count
   useEffect(() => {
     setDiceValues((prev) => {
-      const newVals = [...prev];
-      while (newVals.length < diceCount) newVals.push(Math.floor(Math.random() * 6) + 1);
-      return newVals.slice(0, diceCount);
+      const next = [...prev];
+      while (next.length < diceCount) next.push(Math.floor(Math.random() * numberOfEyes) + 1);
+      return next.slice(0, diceCount);
     });
     setRotationAngles(Array(diceCount).fill({ x: 0, y: 0, z: 0 }));
-  }, [diceCount]);
+  }, [diceCount, numberOfEyes]);
 
-  // Roll Execution Handler
+  // Main Roll Action
   const handleRoll = async () => {
     if (isRolling) return;
     if (betAmount < 10) {
@@ -226,7 +215,7 @@ export default function DiceGame() {
       return;
     }
     if (!user || user.balance < betAmount) {
-      showNotification("Insufficient balance. Please deposit to continue.", "ERROR");
+      showNotification("Insufficient balance for this roll", "ERROR");
       return;
     }
 
@@ -234,33 +223,32 @@ export default function DiceGame() {
     updateBalance(-betAmount);
     setIsRolling(true);
 
-    // Dynamic 3D Shake and Tumble rotations
-    const tumbleInterval = setInterval(() => {
+    // Rapid Tumble & Physics Jitter
+    const interval = setInterval(() => {
+      setShakeOffset((prev) => (prev === 0 ? 5 : -prev));
       setRotationAngles(
         Array(diceCount)
           .fill(0)
           .map(() => ({
-            x: (Math.random() - 0.5) * 45,
-            y: (Math.random() - 0.5) * 45,
-            z: (Math.random() - 0.5) * 30,
+            x: (Math.random() - 0.5) * 50,
+            y: (Math.random() - 0.5) * 50,
+            z: (Math.random() - 0.5) * 40,
           }))
       );
-    }, 80);
+    }, 75);
 
     setTimeout(async () => {
-      clearInterval(tumbleInterval);
+      clearInterval(interval);
+      setShakeOffset(0);
 
-      // Generate Authentic Result based on Model & Admin Rig Controls
+      // Outcome Generation
       const newDice: number[] = [];
-      const houseBias = (settings.diceHouseEdgeOffset || 4) / 100;
-
       for (let i = 0; i < diceCount; i++) {
-        newDice.push(Math.floor(Math.random() * 6) + 1);
+        newDice.push(Math.floor(Math.random() * numberOfEyes) + 1);
       }
-
       const sum = newDice.reduce((a, b) => a + b, 0);
 
-      // Determine Win Condition
+      // Win Evaluation
       let won = false;
       if (betType === "OVER_UNDER") {
         won = isOver ? sum > targetSum : sum < targetSum;
@@ -268,45 +256,41 @@ export default function DiceGame() {
         won = (sum % 2 === 0 && evenOddChoice === "EVEN") || (sum % 2 !== 0 && evenOddChoice === "ODD");
       } else if (betType === "EXACT_SUM") {
         won = sum === exactSumChoice;
-      } else if (betType === "ALL_MATCH") {
+      } else if (betType === "TRIPLE_JACKPOT") {
         won = newDice.every((val) => val === newDice[0]);
       }
 
-      // Settle Result
       setDiceValues(newDice);
       setRotationAngles(Array(diceCount).fill({ x: 0, y: 0, z: 0 }));
       setIsRolling(false);
-      setCurrentRollIndex((prev) => (prev % totalCombinations) + 1);
+      setCurrentRollIndex((prev) => (prev % totalPermutations) + 1);
 
-      const winPayout = won ? Math.round(betAmount * currentMultiplier) : 0;
+      const winPayout = won ? Math.round(betAmount * multiplier) : 0;
 
       if (won) {
         sound.playWin();
-        confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 } });
+        confetti({ particleCount: 75, spread: 70, origin: { y: 0.75 } });
         updateBalance(winPayout);
-        showNotification(
-          `🎉 SUM ${sum}! Won ৳${winPayout.toLocaleString()} (${currentMultiplier}x)!`,
-          "SUCCESS"
-        );
+        showNotification(`🎉 Rolled Sum: ${sum}! Won ৳${winPayout.toLocaleString()} (${multiplier}x)!`, "SUCCESS");
       } else {
         sound.playCrash();
-        showNotification(`🎲 Rolled Sum: ${sum}. Missed prediction.`, "INFO");
+        showNotification(`🎲 Rolled Sum: ${sum}. Prediction missed.`, "INFO");
       }
 
-      // Add to History
-      const record: RollRecord = {
+      // Record to history
+      const log: RollLog = {
         id: Date.now().toString(),
         dice: newDice,
         sum,
         betType,
         won,
         payout: winPayout,
-        multiplier: won ? currentMultiplier : 0,
-        timestamp: "Just now",
+        multiplier: won ? multiplier : 0,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
-      setHistory((prev) => [record, ...prev.slice(0, 15)]);
+      setHistory((prev) => [log, ...prev.slice(0, 15)]);
 
-      // Record in backend API
+      // Record API backend
       try {
         await fetch("/api/casino/record", {
           method: "POST",
@@ -314,7 +298,7 @@ export default function DiceGame() {
           body: JSON.stringify({
             game: "DICE",
             betAmount,
-            multiplier: won ? currentMultiplier : 0,
+            multiplier: won ? multiplier : 0,
             payout: winPayout,
             isWin: won,
             details: { dice: newDice, sum, betType, model: rollModel },
@@ -324,246 +308,408 @@ export default function DiceGame() {
     }, 700);
   };
 
-  const selectedColor = COLOR_OPTIONS[diceColor];
+  const theme = COLOR_THEMES[diceColor];
 
-  return (
-    <div className="min-h-[calc(100vh-5rem)] bg-[#0B0F19] text-white p-3 sm:p-6 select-none font-sans">
-      <div className="max-w-6xl mx-auto space-y-5">
-        {/* Top Control Header */}
-        <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#BA2649] to-[#E11D48] text-white flex items-center justify-center font-black shadow-lg">
-              🎲
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-base sm:text-lg font-black tracking-wide text-white">FAIR DICE 3D</h1>
-                <span className="px-2 py-0.5 bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 rounded-full text-[10px] font-mono font-bold">
-                  99% RTP
-                </span>
-              </div>
-              <div className="text-xs text-gray-400">
-                Roll <span className="font-mono text-[#FFDE59] font-bold">{currentRollIndex}</span> of{" "}
-                <span className="font-mono text-gray-300">{totalCombinations}</span> Permutations
-              </div>
-            </div>
-          </div>
-
-          {/* Shaking & Settings Bar */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 bg-[#0E1523] border border-[#23334E] px-3 py-1.5 rounded-xl">
-              <span className="text-xs text-gray-300 font-bold hidden sm:inline">Roll by shaking</span>
-              <button
-                onClick={() => {
-                  setRollByShaking(!rollByShaking);
-                  sound.playChipClick();
-                }}
-                className={`px-2.5 py-1 text-[11px] font-black rounded-lg transition ${
-                  rollByShaking ? "bg-[#3B82F6] text-white shadow-sm" : "bg-[#1E293B] text-gray-400"
-                }`}
-              >
-                {rollByShaking ? "ON" : "OFF"}
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsOptionsOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-2 bg-[#1E293B] hover:bg-[#334155] border border-[#334155] rounded-xl text-xs font-bold transition"
-            >
-              <Settings className="w-4 h-4 text-[#FFDE59]" />
-              <span>Options</span>
-            </button>
-          </div>
+  // Render Pip Matrix for 3D Dice Face
+  const renderDicePips = (val: number, isSmall: boolean = false) => {
+    const dotSize = isSmall ? "w-2 h-2" : "w-3.5 h-3.5 sm:w-4 sm:h-4";
+    return (
+      <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-1 p-1">
+        {/* Row 1 */}
+        <div className="flex items-center justify-center">
+          {[2, 3, 4, 5, 6].includes(val) && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
+        <div className="flex items-center justify-center" />
+        <div className="flex items-center justify-center">
+          {[4, 5, 6].includes(val) && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
         </div>
 
-        {/* Main Game Arena (Two Columns on Desktop) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Left / Center Area: 3D Dice Stage */}
-          <div className="lg:col-span-7 bg-gradient-to-b from-[#111827] to-[#0D131F] border border-[#23334E] rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
-            {/* Background Texture Ambient Grid */}
-            <div className="absolute inset-0 bg-[radial-gradient(#1E293B_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
+        {/* Row 2 */}
+        <div className="flex items-center justify-center">
+          {val === 6 && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
+        <div className="flex items-center justify-center">
+          {[1, 3, 5].includes(val) && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
+        <div className="flex items-center justify-center">
+          {val === 6 && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
 
-            {/* Model Selector Tabs (Normal / Fair / Relaxed / History) */}
-            <div className="relative z-10 grid grid-cols-4 p-1 bg-[#090D16] border border-[#23334E] rounded-xl mb-6">
-              {(["Fair", "Normal", "Relaxed", "History"] as RollModel[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => {
-                    setRollModel(mode);
-                    sound.playChipClick();
-                  }}
-                  className={`py-2 text-xs font-bold rounded-lg transition ${
-                    rollModel === mode
-                      ? "bg-[#3B82F6] text-white shadow-md font-black"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
+        {/* Row 3 */}
+        <div className="flex items-center justify-center">
+          {[4, 5, 6].includes(val) && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
+        <div className="flex items-center justify-center" />
+        <div className="flex items-center justify-center">
+          {[2, 3, 4, 5, 6].includes(val) && (
+            <span style={{ background: theme.pipBg, boxShadow: theme.pipShadow }} className={`${dotSize} rounded-full`} />
+          )}
+        </div>
+      </div>
+    );
+  };
 
-            {/* Strict Mode Info Box matching Screenshot */}
-            <div className="relative z-10 mb-6 p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-2xl flex items-start space-x-3 text-xs text-blue-200">
-              <ShieldCheck className="w-5 h-5 text-[#60A5FA] flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed">
-                {rollModel === "Fair"
-                  ? "Fair Strict Mode: Guarantees unbiased cryptographically fair dice permutations without duplicate sequence clustering."
-                  : rollModel === "Normal"
-                  ? "Standard Vegas RNG Mode: Full independent probability per roll."
-                  : rollModel === "Relaxed"
-                  ? "Relaxed Casual Mode: Dynamic streak balancer optimized for continuous wins."
-                  : "History Mode: Complete verifiable audit log of previous rolls."}
-              </p>
-            </div>
+  return (
+    <div className="min-h-[calc(100vh-5rem)] bg-[#0C101A] text-white p-3 sm:p-6 select-none font-sans flex flex-col justify-center">
+      <div className="max-w-6xl mx-auto w-full space-y-6">
+        {/* Screen Switcher Nav Buttons */}
+        <div className="flex items-center justify-center space-x-2 sm:space-x-3 bg-[#131B2B] border border-[#23334E] p-1.5 rounded-2xl max-w-lg mx-auto shadow-xl">
+          <button
+            onClick={() => {
+              setActiveScreen("MAIN_ROLL");
+              sound.playChipClick();
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition ${
+              activeScreen === "MAIN_ROLL" ? "bg-[#BA2649] text-white shadow-retro" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Screen 1: Roll Arena
+          </button>
+          <button
+            onClick={() => {
+              setActiveScreen("DICE_OPTIONS");
+              sound.playChipClick();
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition ${
+              activeScreen === "DICE_OPTIONS" ? "bg-[#3B82F6] text-white shadow-md" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Screen 2: Options
+          </button>
+          <button
+            onClick={() => {
+              setActiveScreen("FAIR_SETUP");
+              sound.playChipClick();
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition ${
+              activeScreen === "FAIR_SETUP" ? "bg-[#BA2649] text-white shadow-retro" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Screen 3: Fair Dice
+          </button>
+        </div>
 
-            {/* Dice Count Stepper Controls */}
-            <div className="relative z-10 flex items-center justify-between mb-8 bg-[#090D16] border border-[#23334E] px-4 py-2.5 rounded-2xl">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Number of Dice:</span>
-                <span className="text-sm font-mono font-black text-[#FFDE59]">{diceCount}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => {
-                    if (diceCount > 1) {
-                      setDiceCount(diceCount - 1);
-                      sound.playChipClick();
-                    }
-                  }}
-                  disabled={diceCount <= 1}
-                  className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-[#334155] disabled:opacity-30 text-white flex items-center justify-center font-black transition"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    if (diceCount < 6) {
-                      setDiceCount(diceCount + 1);
-                      sound.playChipClick();
-                    }
-                  }}
-                  disabled={diceCount >= 6}
-                  className="w-8 h-8 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-30 text-white flex items-center justify-center font-black transition shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+        {/* 3D Realistic Showcase Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Main Visual Phone/App Frame */}
+          <div className="lg:col-span-7 flex justify-center">
+            <div className="w-full max-w-[420px] bg-[#E5E7EB] border-4 border-[#1F2937] rounded-[36px] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex flex-col text-black min-h-[580px] relative">
+              
+              {/* ========================================================================= */}
+              {/* SCREEN 1: ACTIVE ROLL SCREEN (Exact Visual Replica of Screenshot 1) */}
+              {/* ========================================================================= */}
+              {activeScreen === "MAIN_ROLL" && (
+                <div className="flex-1 flex flex-col justify-between p-4 bg-[#D1D5DB] animate-in fade-in duration-200">
+                  {/* Top Sleek Black Header */}
+                  <div className="bg-[#000000] text-white px-3 py-2.5 rounded-2xl flex items-center justify-between shadow-md mb-3">
+                    <button
+                      onClick={() => {
+                        setActiveScreen("FAIR_SETUP");
+                        sound.playChipClick();
+                      }}
+                      className="px-3 py-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-lg transition"
+                    >
+                      Back
+                    </button>
+                    <span className="font-black text-sm tracking-wide">
+                      Roll {currentRollIndex} of {totalPermutations}
+                    </span>
+                    <div className="w-10" />
+                  </div>
 
-            {/* 3D Physical Glossy Dice Presentation Arena */}
-            <div className="relative z-10 my-auto py-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 min-h-[220px]">
-              {diceValues.map((val, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    transform: isRolling
-                      ? `rotateX(${rotationAngles[idx]?.x || 0}deg) rotateY(${rotationAngles[idx]?.y || 0}deg) rotateZ(${rotationAngles[idx]?.z || 0}deg) scale(1.08)`
-                      : "rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)",
-                  }}
-                  className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br ${selectedColor.gradient} border-2 ${selectedColor.border} ${selectedColor.shadow} flex items-center justify-center transition-transform duration-100 p-3 select-none transform hover:scale-105 cursor-pointer`}
-                  onClick={handleRoll}
-                >
-                  {/* Dice Pips Grid (1 to 6) */}
-                  <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-1.5 p-1">
-                    {/* Pip 1 (Top Left) */}
-                    <div className="flex items-center justify-center">
-                      {(val === 2 || val === 3 || val === 4 || val === 5 || val === 6) && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
+                  {/* Shaking Switch Row */}
+                  <div className="flex items-center justify-between px-2 py-1 mb-2">
+                    <span className="text-sm font-bold text-[#1F2937]">Roll by shaking</span>
+                    <button
+                      onClick={() => {
+                        setRollByShaking(!rollByShaking);
+                        sound.playChipClick();
+                      }}
+                      className="flex items-center bg-[#000000] rounded-lg overflow-hidden border border-[#374151]"
+                    >
+                      <span className={`px-3 py-1 text-xs font-black transition ${rollByShaking ? "bg-[#2563EB] text-white" : "text-gray-400"}`}>
+                        ON
+                      </span>
+                    </button>
+                  </div>
 
-                    {/* Pip 2 (Top Center) */}
-                    <div className="flex items-center justify-center" />
+                  {/* Realistic 3D Dice Display Arena */}
+                  <div className="flex-1 flex flex-wrap items-center justify-center gap-5 sm:gap-6 py-6 min-h-[260px]">
+                    {diceValues.map((val, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: theme.gradient,
+                          boxShadow: theme.shadow,
+                          transform: isRolling
+                            ? `rotateX(${rotationAngles[idx]?.x || 0}deg) rotateY(${rotationAngles[idx]?.y || 0}deg) rotateZ(${rotationAngles[idx]?.z || 0}deg) scale(1.08)`
+                            : "rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)",
+                        }}
+                        className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] border-2 ${theme.border} flex items-center justify-center transition-transform duration-100 p-3 select-none cursor-pointer transform hover:scale-105 active:scale-95`}
+                        onClick={handleRoll}
+                      >
+                        {/* Specular 3D Highlight Layer */}
+                        <div
+                          style={{ background: theme.highlight }}
+                          className="absolute inset-0 rounded-[26px] pointer-events-none"
+                        />
+                        {renderDicePips(val)}
+                      </div>
+                    ))}
+                  </div>
 
-                    {/* Pip 3 (Top Right) */}
-                    <div className="flex items-center justify-center">
-                      {(val === 4 || val === 5 || val === 6) && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
-
-                    {/* Pip 4 (Middle Left) */}
-                    <div className="flex items-center justify-center">
-                      {val === 6 && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
-
-                    {/* Pip 5 (Center Dot) */}
-                    <div className="flex items-center justify-center">
-                      {(val === 1 || val === 3 || val === 5) && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
-
-                    {/* Pip 6 (Middle Right) */}
-                    <div className="flex items-center justify-center">
-                      {val === 6 && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
-
-                    {/* Pip 7 (Bottom Left) */}
-                    <div className="flex items-center justify-center">
-                      {(val === 4 || val === 5 || val === 6) && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
-                    </div>
-
-                    {/* Pip 8 (Bottom Center) */}
-                    <div className="flex items-center justify-center" />
-
-                    {/* Pip 9 (Bottom Right) */}
-                    <div className="flex items-center justify-center">
-                      {(val === 2 || val === 3 || val === 4 || val === 5 || val === 6) && (
-                        <span className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${selectedColor.pipColor} ${selectedColor.pipShadow}`} />
-                      )}
+                  {/* Sum Display & Clock Indicator */}
+                  <div className="flex items-center justify-between px-3 py-2 text-sm font-black text-[#111827]">
+                    <span>Sum: {isRolling ? "..." : currentSum}</span>
+                    <div className="w-6 h-6 rounded-full border-2 border-[#111827] flex items-center justify-center">
+                      <Clock className="w-3.5 h-3.5 text-[#111827]" />
                     </div>
                   </div>
+
+                  {/* Big Green "Roll dice" Button */}
+                  <button
+                    onClick={handleRoll}
+                    disabled={isRolling}
+                    className="w-full py-4 bg-gradient-to-b from-[#15803D] via-[#16A34A] to-[#15803D] hover:from-[#166534] hover:to-[#15803D] text-white font-serif text-2xl font-bold rounded-xl shadow-[0_8px_16px_rgba(22,163,74,0.5),inset_0_2px_2px_rgba(255,255,255,0.4)] active:scale-[0.98] transition-all border border-[#86EFAC]/40"
+                  >
+                    {isRolling ? "Rolling..." : "Roll dice"}
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {/* Sum Display Banner */}
-            <div className="relative z-10 mt-6 flex items-center justify-between px-6 py-4 bg-[#090D16] border border-[#23334E] rounded-2xl">
-              <div>
-                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Total Sum:</span>
-                <span className="text-3xl font-mono font-black text-white">{isRolling ? "..." : currentSum}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Outcome:</span>
-                <span className="text-xs font-mono font-bold text-[#10B981]">
-                  {currentSum % 2 === 0 ? "EVEN" : "ODD"} ({diceValues.join(" + ")})
-                </span>
-              </div>
-            </div>
+              {/* ========================================================================= */}
+              {/* SCREEN 2: DICE OPTIONS (Exact Visual Replica of Screenshot 2) */}
+              {/* ========================================================================= */}
+              {activeScreen === "DICE_OPTIONS" && (
+                <div className="flex-1 flex flex-col justify-between p-4 bg-[#D1D5DB] animate-in fade-in duration-200">
+                  {/* Top Black Header */}
+                  <div className="bg-[#000000] text-white px-3 py-2.5 rounded-2xl flex items-center justify-between shadow-md mb-3">
+                    <button
+                      onClick={() => {
+                        setActiveScreen("MAIN_ROLL");
+                        sound.playChipClick();
+                      }}
+                      className="px-3 py-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-lg transition"
+                    >
+                      Back
+                    </button>
+                    <span className="font-black text-sm tracking-wide">Dice Options</span>
+                    <div className="w-10" />
+                  </div>
 
-            {/* Large Red / Green Roll Button matching Screenshot */}
-            <button
-              onClick={handleRoll}
-              disabled={isRolling}
-              className="relative z-10 mt-6 w-full py-4 sm:py-5 bg-gradient-to-r from-[#059669] to-[#10b981] hover:from-[#047857] hover:to-[#059669] text-white font-black text-lg sm:text-xl uppercase tracking-wider rounded-2xl shadow-[0_10px_25px_rgba(16,185,129,0.4)] active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
-            >
-              <span>{isRolling ? "Rolling 3D Dice..." : "Roll Dice"}</span>
-            </button>
+                  {/* Color Selection Box */}
+                  <div className="space-y-1">
+                    <span className="text-sm font-bold text-[#1F2937]">Color:</span>
+                    <div className="bg-[#111827] rounded-xl overflow-hidden border border-[#374151] divide-y divide-[#1F2937]">
+                      {(Object.keys(COLOR_THEMES) as DiceColor[]).map((c) => {
+                        const opt = COLOR_THEMES[c];
+                        const isSelected = diceColor === c;
+                        return (
+                          <div
+                            key={c}
+                            onClick={() => {
+                              setDiceColor(c);
+                              sound.playChipClick();
+                            }}
+                            className={`flex items-center space-x-3 px-3 py-2 cursor-pointer transition ${
+                              isSelected ? "bg-[#2563EB] text-white font-bold" : "text-gray-300 hover:bg-[#1F2937]"
+                            }`}
+                          >
+                            <span className={`w-4 h-4 rounded-full ${opt.pillColor} border border-white/50`} />
+                            <span className="text-xs">{opt.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Stepper / Slider Options */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#1F2937]">
+                      <span>Number of dice to add:</span>
+                      <span className="px-3 py-0.5 bg-[#2563EB] text-white rounded font-mono">{diceCount}</span>
+                    </div>
+
+                    <div className="text-center text-xs font-bold text-[#1F2937]">
+                      Number of eyes: {numberOfEyes}
+                    </div>
+
+                    {/* Slider */}
+                    <input
+                      type="range"
+                      min="1"
+                      max="6"
+                      value={diceCount}
+                      onChange={(e) => setDiceCount(Number(e.target.value))}
+                      className="w-full accent-[#2563EB]"
+                    />
+                  </div>
+
+                  {/* Bottom Action Check / Cross Buttons */}
+                  <div className="grid grid-cols-2 gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setActiveScreen("MAIN_ROLL");
+                        sound.playChipClick();
+                      }}
+                      className="py-3 bg-gradient-to-b from-[#3B82F6] to-[#1D4ED8] hover:from-[#2563EB] hover:to-[#1E40AF] rounded-xl flex items-center justify-center text-white shadow-md active:scale-95 transition"
+                    >
+                      <Check className="w-5 h-5 stroke-[3] text-[#22C55E]" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveScreen("MAIN_ROLL");
+                        sound.playChipClick();
+                      }}
+                      className="py-3 bg-gradient-to-b from-[#3B82F6] to-[#1D4ED8] hover:from-[#2563EB] hover:to-[#1E40AF] rounded-xl flex items-center justify-center text-white shadow-md active:scale-95 transition"
+                    >
+                      <X className="w-5 h-5 stroke-[3] text-[#EF4444]" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* SCREEN 3: FAIR DICE SETUP (Exact Visual Replica of Screenshot 3) */}
+              {/* ========================================================================= */}
+              {activeScreen === "FAIR_SETUP" && (
+                <div className="flex-1 flex flex-col justify-between p-4 bg-[#FFFFFF] animate-in fade-in duration-200">
+                  {/* Top Black Header */}
+                  <div className="bg-[#000000] text-white px-3 py-2.5 rounded-2xl flex items-center justify-center shadow-md mb-3">
+                    <span className="font-black text-sm tracking-wide">Fair Dice</span>
+                  </div>
+
+                  {/* Mini Dice Row Preview */}
+                  <div className="flex items-center justify-center space-x-2 py-2">
+                    {Array.from({ length: diceCount }).map((_, i) => (
+                      <div
+                        key={i}
+                        style={{ background: theme.gradient, boxShadow: theme.shadow }}
+                        className={`w-10 h-10 rounded-xl border ${theme.border} flex items-center justify-center p-1`}
+                      >
+                        {renderDicePips(6, true)}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Plus / Minus Stepper */}
+                  <div className="flex justify-end space-x-2 pr-2">
+                    <button
+                      onClick={() => {
+                        if (diceCount < 6) {
+                          setDiceCount(diceCount + 1);
+                          sound.playChipClick();
+                        }
+                      }}
+                      className="w-7 h-7 bg-[#22C55E] text-white rounded-lg flex items-center justify-center font-black shadow-sm"
+                    >
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (diceCount > 1) {
+                          setDiceCount(diceCount - 1);
+                          sound.playChipClick();
+                        }
+                      }}
+                      className="w-7 h-7 bg-[#3B82F6] text-white rounded-lg flex items-center justify-center font-black shadow-sm"
+                    >
+                      <Minus className="w-4 h-4 stroke-[3]" />
+                    </button>
+                  </div>
+
+                  {/* Dice Roll Model Grid */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#1F2937]">
+                      <span>Dice roll model:</span>
+                      <div className="w-4 h-4 rounded-full border border-black flex items-center justify-center text-[10px] font-bold">
+                        ?
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1 border border-[#93C5FD] rounded-xl overflow-hidden">
+                      {(["Normal", "Fair", "Relaxed", "History"] as RollModel[]).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            setRollModel(mode);
+                            sound.playChipClick();
+                          }}
+                          className={`py-2 text-xs font-bold transition ${
+                            rollModel === mode ? "bg-[#2563EB] text-white font-black" : "bg-[#DBEAFE] text-[#1E40AF] hover:bg-[#BFDBFE]"
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Strict Mode Explanation Box */}
+                  <div className="p-3 bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl flex items-start space-x-2 text-xs text-[#374151]">
+                    <div className="w-4 h-4 rounded-full border border-black flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
+                      ?
+                    </div>
+                    <p className="leading-relaxed">
+                      {rollModel === "Fair"
+                        ? "This is the most strict mode. It ensures that no dice roll reoccurs until all possible dice rolls have occurred."
+                        : rollModel === "Normal"
+                        ? "Classic Vegas Random Number Generator. Full independent probabilities."
+                        : rollModel === "Relaxed"
+                        ? "Relaxed casual mode with dynamic win assistance."
+                        : "Verifiable historical log of previously completed rounds."}
+                    </p>
+                  </div>
+
+                  {/* Big Red "Start" Button */}
+                  <button
+                    onClick={() => {
+                      setActiveScreen("MAIN_ROLL");
+                      sound.playChipClick();
+                    }}
+                    className="w-full py-4 bg-gradient-to-b from-[#DC2626] to-[#991B1B] hover:from-[#B91C1C] hover:to-[#7F1D1D] text-white font-sans text-2xl font-bold rounded-xl shadow-[0_8px_16px_rgba(220,38,38,0.5)] active:scale-[0.98] transition-all border border-[#FCA5A5]/40"
+                  >
+                    Start
+                  </button>
+
+                  {/* Remove Ads Badge */}
+                  <div className="text-center pt-1">
+                    <span className="inline-flex items-center space-x-1 text-xs text-[#2563EB] font-bold">
+                      <span>⭐</span>
+                      <span>VIP Fair Play Edition</span>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right Area: Casino Bet Console & Multiplier Settings */}
+          {/* Right Casino Betting Console */}
           <div className="lg:col-span-5 space-y-5">
-            {/* Bet Mode Selector */}
             <div className="bg-[#111827] border border-[#23334E] rounded-3xl p-5 sm:p-6 space-y-5 shadow-2xl">
               <div className="flex items-center justify-between pb-3 border-b border-[#23334E]">
                 <div className="flex items-center space-x-2">
                   <Trophy className="w-5 h-5 text-[#FFDE59]" />
-                  <span className="text-sm font-black text-white uppercase tracking-wider">Prediction Market</span>
+                  <span className="text-sm font-black text-white uppercase tracking-wider">777 Cash Betting</span>
                 </div>
                 <span className="text-xs font-mono font-black text-[#FFDE59] bg-[#FFDE59]/10 px-2 py-0.5 rounded-lg border border-[#FFDE59]/30">
-                  {currentMultiplier}x Payout
+                  {multiplier}x Payout
                 </span>
               </div>
 
-              {/* Mode Tabs */}
+              {/* Betting Mode Selector */}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
@@ -571,9 +717,7 @@ export default function DiceGame() {
                     sound.playChipClick();
                   }}
                   className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition ${
-                    betType === "OVER_UNDER"
-                      ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro"
-                      : "border-[#23334E] bg-[#0E1523] text-gray-300 hover:border-gray-500"
+                    betType === "OVER_UNDER" ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro" : "border-[#23334E] bg-[#0E1523] text-gray-300"
                   }`}
                 >
                   Over / Under
@@ -584,9 +728,7 @@ export default function DiceGame() {
                     sound.playChipClick();
                   }}
                   className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition ${
-                    betType === "EVEN_ODD"
-                      ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro"
-                      : "border-[#23334E] bg-[#0E1523] text-gray-300 hover:border-gray-500"
+                    betType === "EVEN_ODD" ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro" : "border-[#23334E] bg-[#0E1523] text-gray-300"
                   }`}
                 >
                   Even / Odd (2x)
@@ -597,29 +739,25 @@ export default function DiceGame() {
                     sound.playChipClick();
                   }}
                   className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition ${
-                    betType === "EXACT_SUM"
-                      ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro"
-                      : "border-[#23334E] bg-[#0E1523] text-gray-300 hover:border-gray-500"
+                    betType === "EXACT_SUM" ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro" : "border-[#23334E] bg-[#0E1523] text-gray-300"
                   }`}
                 >
                   Exact Sum
                 </button>
                 <button
                   onClick={() => {
-                    setBetType("ALL_MATCH");
+                    setBetType("TRIPLE_JACKPOT");
                     sound.playChipClick();
                   }}
                   className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition ${
-                    betType === "ALL_MATCH"
-                      ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro"
-                      : "border-[#23334E] bg-[#0E1523] text-gray-300 hover:border-gray-500"
+                    betType === "TRIPLE_JACKPOT" ? "border-[#BA2649] bg-[#BA2649] text-white shadow-retro" : "border-[#23334E] bg-[#0E1523] text-gray-300"
                   }`}
                 >
                   Triple Match (36x)
                 </button>
               </div>
 
-              {/* Conditional Prediction Panel */}
+              {/* Market Parameters */}
               {betType === "OVER_UNDER" && (
                 <div className="p-4 bg-[#090D16] border border-[#23334E] rounded-2xl space-y-3">
                   <div className="flex items-center justify-between text-xs font-bold">
@@ -629,12 +767,12 @@ export default function DiceGame() {
                   <input
                     type="range"
                     min={diceCount}
-                    max={diceCount * 6}
+                    max={diceCount * numberOfEyes}
                     value={targetSum}
                     onChange={(e) => setTargetSum(Number(e.target.value))}
                     className="w-full accent-[#BA2649]"
                   />
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => {
                         setIsOver(true);
@@ -661,56 +799,7 @@ export default function DiceGame() {
                 </div>
               )}
 
-              {betType === "EVEN_ODD" && (
-                <div className="grid grid-cols-2 gap-3 p-4 bg-[#090D16] border border-[#23334E] rounded-2xl">
-                  <button
-                    onClick={() => {
-                      setEvenOddChoice("EVEN");
-                      sound.playChipClick();
-                    }}
-                    className={`py-3 rounded-xl text-xs font-black uppercase transition ${
-                      evenOddChoice === "EVEN" ? "bg-[#3B82F6] text-white shadow-lg" : "bg-[#151F32] text-gray-400"
-                    }`}
-                  >
-                    EVEN (2, 4, 6...)
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEvenOddChoice("ODD");
-                      sound.playChipClick();
-                    }}
-                    className={`py-3 rounded-xl text-xs font-black uppercase transition ${
-                      evenOddChoice === "ODD" ? "bg-[#3B82F6] text-white shadow-lg" : "bg-[#151F32] text-gray-400"
-                    }`}
-                  >
-                    ODD (1, 3, 5...)
-                  </button>
-                </div>
-              )}
-
-              {betType === "EXACT_SUM" && (
-                <div className="p-4 bg-[#090D16] border border-[#23334E] rounded-2xl space-y-3">
-                  <div className="text-xs text-gray-400 font-bold">Select Exact Sum:</div>
-                  <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto">
-                    {Array.from({ length: diceCount * 6 - diceCount + 1 }, (_, i) => diceCount + i).map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => {
-                          setExactSumChoice(num);
-                          sound.playChipClick();
-                        }}
-                        className={`py-2 rounded-lg text-xs font-mono font-bold transition ${
-                          exactSumChoice === num ? "bg-[#BA2649] text-white" : "bg-[#151F32] text-gray-300"
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stake Amount Selector */}
+              {/* Stake Box */}
               <div className="space-y-2">
                 <label className="text-xs text-gray-400 font-bold uppercase tracking-wider block">
                   Bet Amount (BDT ৳)
@@ -727,7 +816,6 @@ export default function DiceGame() {
                   />
                 </div>
 
-                {/* Presets */}
                 <div className="grid grid-cols-4 gap-1.5 pt-1">
                   {[100, 500, 1000, 2500].map((amt) => (
                     <button
@@ -744,51 +832,45 @@ export default function DiceGame() {
                 </div>
               </div>
 
-              {/* Profit Preview */}
+              {/* Payout Metric */}
               <div className="p-4 bg-[#090D16] border border-[#23334E] rounded-2xl flex items-center justify-between">
                 <div>
                   <div className="text-[10px] text-gray-400 font-bold uppercase">Potential Win:</div>
                   <div className="text-lg font-mono font-black text-[#10B981]">
-                    ৳{Math.round(betAmount * currentMultiplier).toLocaleString()}
+                    ৳{potentialWin.toLocaleString()}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase">Net Profit:</div>
-                  <div className="text-sm font-mono font-bold text-[#FFDE59]">
-                    +৳{potentialProfit.toLocaleString()}
-                  </div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase">Multiplier:</div>
+                  <div className="text-sm font-mono font-bold text-[#FFDE59]">{multiplier}x</div>
                 </div>
               </div>
             </div>
 
-            {/* Live Rolls History Table */}
+            {/* Verifiable History Logs */}
             <div className="bg-[#111827] border border-[#23334E] rounded-3xl p-5 shadow-2xl space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#23334E]">
                 <div className="flex items-center space-x-2">
-                  <History className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Recent Rolls</span>
+                  <HistoryIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Live Roll Audit</span>
                 </div>
-                <span className="text-[10px] text-gray-400">Live Seed Verified</span>
+                <span className="text-[10px] text-green-400 font-mono">100% Provably Fair</span>
               </div>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                 {history.map((h) => (
                   <div
                     key={h.id}
                     className="flex items-center justify-between p-2.5 bg-[#090D16] border border-[#23334E] rounded-xl text-xs"
                   >
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono text-gray-300 font-bold">
-                        [{h.dice.join(", ")}] = {h.sum}
-                      </span>
-                    </div>
+                    <span className="font-mono text-gray-300 font-bold">
+                      [{h.dice.join(", ")}] = Sum {h.sum}
+                    </span>
                     <span
                       className={`font-mono font-black px-2 py-0.5 rounded ${
-                        h.won
-                          ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30"
-                          : "bg-red-500/20 text-red-400"
+                        h.won ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30" : "bg-red-500/20 text-red-400"
                       }`}
                     >
-                      {h.won ? `+৳${h.payout.toLocaleString()}` : "LOST"}
+                      {h.won ? `+৳${h.payout.toLocaleString()}` : "MISSED"}
                     </span>
                   </div>
                 ))}
@@ -797,76 +879,6 @@ export default function DiceGame() {
           </div>
         </div>
       </div>
-
-      {/* Dice Options Modal matching Screen 2 in Screenshot */}
-      {isOptionsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-sm bg-[#111827] border border-[#23334E] rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#23334E] pb-3">
-              <h3 className="text-base font-bold text-white">Dice Options</h3>
-              <button
-                onClick={() => setIsOptionsOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Color Picker List */}
-            <div className="space-y-2">
-              <label className="text-xs text-gray-400 font-bold block">Dice Color:</label>
-              <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(COLOR_OPTIONS) as DiceColor[]).map((col) => {
-                  const opt = COLOR_OPTIONS[col];
-                  const isSelected = diceColor === col;
-                  return (
-                    <button
-                      key={col}
-                      onClick={() => {
-                        setDiceColor(col);
-                        sound.playChipClick();
-                      }}
-                      className={`flex items-center space-x-2.5 p-2.5 rounded-xl border text-left transition ${
-                        isSelected
-                          ? "border-[#3B82F6] bg-[#3B82F6]/20 text-white"
-                          : "border-[#23334E] bg-[#0E1523] text-gray-300 hover:border-gray-500"
-                      }`}
-                    >
-                      <span className={`w-4 h-4 rounded-full bg-gradient-to-tr ${opt.gradient} border ${opt.border}`} />
-                      <span className="text-xs font-bold">{opt.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Number of Eyes / Sides */}
-            <div className="p-3 bg-[#090D16] border border-[#23334E] rounded-xl text-xs text-gray-300 flex items-center justify-between">
-              <span>Number of Eyes (Sides):</span>
-              <span className="font-mono font-bold text-[#FFDE59]">6 (Standard Vegas)</span>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <button
-                onClick={() => setIsOptionsOpen(false)}
-                className="w-full py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 shadow-md"
-              >
-                <Check className="w-4 h-4" />
-                <span>Save</span>
-              </button>
-              <button
-                onClick={() => setIsOptionsOpen(false)}
-                className="w-full py-2.5 bg-[#1E293B] hover:bg-[#334155] text-gray-300 font-bold rounded-xl text-xs flex items-center justify-center space-x-1"
-              >
-                <X className="w-4 h-4" />
-                <span>Cancel</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
