@@ -207,7 +207,7 @@ export default function DiceGame() {
     setRotationAngles(Array(diceCount).fill({ x: 0, y: 0, z: 0 }));
   }, [diceCount, numberOfEyes]);
 
-  // Main Roll Action
+  // Main Roll Action with High-Energy 3D Tumbling Physics
   const handleRoll = async () => {
     if (isRolling) return;
     if (betAmount < 10) {
@@ -223,25 +223,46 @@ export default function DiceGame() {
     updateBalance(-betAmount);
     setIsRolling(true);
 
-    // Rapid Tumble & Physics Jitter
+    let tick = 0;
+    const totalTicks = 18; // ~1080ms of rolling animation
+
+    // Rapid Tumble, Pip Cycling & 3D Physics Jitter
     const interval = setInterval(() => {
-      setShakeOffset((prev) => (prev === 0 ? 5 : -prev));
+      tick++;
+
+      // Rapidly cycle random faces while tumbling
+      setDiceValues((prev) =>
+        prev.map(() => Math.floor(Math.random() * numberOfEyes) + 1)
+      );
+
+      // Random dynamic 3D rotational forces and vertical bounce
       setRotationAngles(
         Array(diceCount)
           .fill(0)
-          .map(() => ({
-            x: (Math.random() - 0.5) * 50,
-            y: (Math.random() - 0.5) * 50,
-            z: (Math.random() - 0.5) * 40,
-          }))
+          .map((_, i) => {
+            const rotFactor = (totalTicks - tick) / totalTicks;
+            const dir = i % 2 === 0 ? 1 : -1;
+            return {
+              x: (Math.sin(tick * 1.2 + i) * 360 * rotFactor) + (Math.random() - 0.5) * 60,
+              y: (Math.cos(tick * 1.4 + i) * 360 * rotFactor * dir) + (Math.random() - 0.5) * 60,
+              z: (Math.sin(tick * 0.8 + i) * 180 * rotFactor) + (Math.random() - 0.5) * 40,
+            };
+          })
       );
-    }, 75);
 
-    setTimeout(async () => {
-      clearInterval(interval);
-      setShakeOffset(0);
+      // Play subtle clatter click during middle of roll
+      if (tick % 5 === 0) {
+        sound.playChipClick();
+      }
 
-      // Outcome Generation
+      if (tick >= totalTicks) {
+        clearInterval(interval);
+        finalizeRollOutcome();
+      }
+    }, 60);
+
+    const finalizeRollOutcome = async () => {
+      // Final Deterministic Outcome Generation
       const newDice: number[] = [];
       for (let i = 0; i < diceCount; i++) {
         newDice.push(Math.floor(Math.random() * numberOfEyes) + 1);
@@ -305,7 +326,7 @@ export default function DiceGame() {
           }),
         });
       } catch {}
-    }, 700);
+    };
   };
 
   const theme = COLOR_THEMES[diceColor];
@@ -445,8 +466,8 @@ export default function DiceGame() {
                     </button>
                   </div>
 
-                  {/* Realistic 3D Dice Display Arena */}
-                  <div className="flex-1 flex flex-wrap items-center justify-center gap-5 sm:gap-6 py-6 min-h-[260px]">
+                  {/* Realistic 3D Dice Display Arena with Perspective */}
+                  <div className="flex-1 flex flex-wrap items-center justify-center gap-5 sm:gap-6 py-6 min-h-[260px] perspective-[1000px]">
                     {diceValues.map((val, idx) => (
                       <div
                         key={idx}
@@ -454,10 +475,11 @@ export default function DiceGame() {
                           background: theme.gradient,
                           boxShadow: theme.shadow,
                           transform: isRolling
-                            ? `rotateX(${rotationAngles[idx]?.x || 0}deg) rotateY(${rotationAngles[idx]?.y || 0}deg) rotateZ(${rotationAngles[idx]?.z || 0}deg) scale(1.08)`
-                            : "rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)",
+                            ? `perspective(800px) rotateX(${rotationAngles[idx]?.x || 0}deg) rotateY(${rotationAngles[idx]?.y || 0}deg) rotateZ(${rotationAngles[idx]?.z || 0}deg) translateY(${Math.sin(rotationAngles[idx]?.x || 0) * 15}px) scale(${1.05 + Math.sin(idx) * 0.05})`
+                            : "perspective(800px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0px) scale(1)",
+                          transition: isRolling ? "transform 60ms ease-out" : "transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                         }}
-                        className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] border-2 ${theme.border} flex items-center justify-center transition-transform duration-100 p-3 select-none cursor-pointer transform hover:scale-105 active:scale-95`}
+                        className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] border-2 ${theme.border} flex items-center justify-center p-3 select-none cursor-pointer transform hover:scale-105 active:scale-95`}
                         onClick={handleRoll}
                       >
                         {/* Specular 3D Highlight Layer */}
