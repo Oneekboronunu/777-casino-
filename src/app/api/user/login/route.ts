@@ -46,16 +46,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check verification status
-    if (user.role !== "ADMIN" && user.isVerified === false) {
-      return NextResponse.json(
-        {
-          error: "Your registration is currently PENDING Admin approval. Once the Admin approves your account, you will receive confirmation and full access.",
-          pendingApproval: true,
-        },
-        { status: 403 }
-      );
-    }
 
     // Set cookie session
     const cookieStore = cookies();

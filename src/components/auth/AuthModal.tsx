@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, ShieldCheck, User, Lock, Mail, Phone, ArrowRight, Sparkles, Flame, CheckCircle2 } from "lucide-react";
+import { X, ShieldCheck, User, Lock, Mail, Phone, Sparkles } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
-import { signInWithGoogle } from "@/lib/firebase";
 import sound from "@/lib/sound";
 
 export default function AuthModal() {
-  const { isAuthModalOpen, closeAuthModal, authModalMode, openAuthModal, fetchUser, showNotification } =
+  const { isAuthModalOpen, closeAuthModal, authModalMode, openAuthModal, showNotification } =
     useUserStore();
 
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -15,28 +14,8 @@ export default function AuthModal() {
   const [name, setName] = useState("");
   const [referralCode, setReferralCode] = useState("WELCOME777");
   const [loading, setLoading] = useState(false);
-  const [firebaseLoading, setFirebaseLoading] = useState(false);
 
   if (!isAuthModalOpen) return null;
-
-  const handleGoogleAuth = async () => {
-    setFirebaseLoading(true);
-    try {
-      const { user: fbUser, error } = await signInWithGoogle();
-      if (error) {
-        showNotification(error, "ERROR");
-      } else if (fbUser) {
-        sound.playWin();
-        showNotification(`🔥 Firebase Connected! Logged in as ${fbUser.displayName || fbUser.email}`, "SUCCESS");
-        await fetchUser();
-        closeAuthModal();
-      }
-    } catch {
-      showNotification("Firebase Auth initialization error", "ERROR");
-    } finally {
-      setFirebaseLoading(false);
-    }
-  };
 
   const handleLogin = async (identifier?: string, pass?: string) => {
     const targetIdentifier = identifier || emailOrPhone;
@@ -76,8 +55,6 @@ export default function AuthModal() {
     }
   };
 
-  const [registeredSuccessMsg, setRegisteredSuccessMsg] = useState<string | null>(null);
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !emailOrPhone || !password) {
@@ -100,10 +77,11 @@ export default function AuthModal() {
       });
 
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.user) {
         sound.playWin();
-        setRegisteredSuccessMsg(`Registration received for ${name}! Details sent to Admin (yasinworks925@gmail.com). Once approved, your ৳2,000 bonus will be active.`);
-        showNotification("Account created! Pending Admin approval.", "SUCCESS");
+        useUserStore.getState().setUser(data.user);
+        showNotification(`Welcome to 777 Casino, ${data.user.name}! ৳2,000 Bonus has been credited.`, "SUCCESS");
+        closeAuthModal();
       } else {
         showNotification(data.error || "Registration failed", "ERROR");
       }
@@ -116,7 +94,7 @@ export default function AuthModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-md bg-[#111827] border border-[#23334E] rounded-2xl shadow-2xl overflow-hidden my-8">
+      <div className="relative w-full max-w-md bg-[#111827] border border-[#23334E] rounded-2xl shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#23334E] bg-[#0E1523]">
           <div className="flex items-center space-x-2">
@@ -131,15 +109,6 @@ export default function AuthModal() {
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Firebase Live Badge */}
-        <div className="bg-[#BA2649]/10 border-b border-[#BA2649]/20 px-6 py-2 flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-1.5 text-[#FFDE59]">
-            <Flame className="w-3.5 h-3.5 text-[#BA2649]" />
-            <span className="font-bold">Firebase Realtime Sync: Active</span>
-          </div>
-          <span className="text-[10px] text-green-400 font-mono">CONNECTED</span>
         </div>
 
         {/* Tab Switcher */}
@@ -208,34 +177,6 @@ export default function AuthModal() {
                 </button>
               </div>
 
-              {/* Google Firebase Login Button */}
-              <button
-                type="button"
-                onClick={handleGoogleAuth}
-                disabled={firebaseLoading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-2 border border-gray-300 shadow-sm"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.41 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.94 0 12s.45 3.84 1.24 5.42l4.04-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.59 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                <span>{firebaseLoading ? "Connecting Firebase..." : "Continue with Google (Firebase)"}</span>
-              </button>
-
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-[#23334E]"></div>
                 <span className="flex-shrink mx-3 text-[11px] text-gray-500 uppercase font-semibold">Or with credentials</span>
@@ -244,30 +185,7 @@ export default function AuthModal() {
             </div>
           )}
 
-          {registeredSuccessMsg ? (
-            <div className="p-5 bg-[#10B981]/15 border-2 border-[#10B981]/40 rounded-2xl text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h4 className="text-base font-black text-white">Application Received!</h4>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                {registeredSuccessMsg}
-              </p>
-              <div className="p-2.5 bg-[#0B0F1A] rounded-xl border border-[#23334E] text-[11px] text-[#FFDE59] font-mono">
-                Admin Notification Sent to: yasinworks925@gmail.com
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setRegisteredSuccessMsg(null);
-                  openAuthModal("LOGIN");
-                }}
-                className="btn-burgundy w-full py-2.5 text-xs font-black uppercase tracking-wider rounded-xl"
-              >
-                Go to Sign In
-              </button>
-            </div>
-          ) : authModalMode === "LOGIN" ? (
+          {authModalMode === "LOGIN" ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -387,7 +305,7 @@ export default function AuthModal() {
 
           <div className="text-center text-[11px] text-gray-400 flex items-center justify-center space-x-1">
             <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
-            <span>18+ | Fair Play Certified | Firebase Realtime Protected</span>
+            <span>18+ | Fair Play Certified | Instant Verification</span>
           </div>
         </div>
       </div>

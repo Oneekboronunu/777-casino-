@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
     const passwordHash = await bcrypt.hash(password, 10);
     const newReferralCode = "AURA" + Math.floor(100000 + Math.random() * 900000);
 
-    // Create user with PENDING verification status (isVerified: false)
+    // Create user with instant verification
     const user = await prisma.user.create({
       data: {
         name,
@@ -43,38 +44,49 @@ export async function POST(req: Request) {
         phone: phone ? phone.trim() : null,
         passwordHash,
         role: "USER",
-        isVerified: false, // Requires Admin Approval
-        balance: 0.0,
-        bonusBalance: 0.0,
+        isVerified: true,
+        balance: 2000.0,
+        bonusBalance: 2000.0,
         currency: "BDT",
         referralCode: newReferralCode,
         referredBy: referralCode ? referralCode.trim() : null,
       },
     });
 
-    // Create initial Pending Registration transaction
+    // Create initial Welcome Bonus transaction
     await prisma.transaction.create({
       data: {
         userId: user.id,
         type: "BONUS_CLAIM",
         amount: 2000.0,
-        method: "Admin Verification",
-        status: "PENDING",
-        note: `Registration received. Pending verification by Admin (notified at yasinworks925@gmail.com).`,
+        method: "Welcome Bonus",
+        status: "COMPLETED",
+        note: `Welcome Bonus ৳2,000 credited on signup.`,
       },
     });
 
-    console.log(`[ADMIN NOTIFICATION EVENT] New user registered: ${name} (${normalizedEmail}, Phone: ${phone || 'N/A'}). Sent notification to admin: yasinworks925@gmail.com`);
+    // Set cookie session
+    const cookieStore = cookies();
+    cookieStore.set("auth_user_id", user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
 
     return NextResponse.json({
       success: true,
-      pendingApproval: true,
-      message: "Registration submitted successfully! Your account has been sent to the Admin for approval. You will receive confirmation once approved.",
+      message: "Account created successfully! ৳2,000 Welcome Bonus has been credited.",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        isVerified: false,
+        phone: user.phone,
+        role: user.role,
+        balance: user.balance,
+        bonusBalance: user.bonusBalance,
+        currency: user.currency,
+        referralCode: user.referralCode,
       },
     });
   } catch (error) {
@@ -82,3 +94,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
   }
 }
+

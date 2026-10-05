@@ -49,10 +49,6 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // Verification check
-        if (user.role !== "ADMIN" && user.isVerified === false) {
-          throw new Error("Your registration is currently PENDING Admin approval. Once the Admin approves your account, you will receive confirmation and full access.");
-        }
 
         return {
           id: user.id,
