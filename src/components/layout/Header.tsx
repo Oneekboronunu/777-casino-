@@ -136,14 +136,14 @@ export default function Header() {
                 <div className="mr-3">
                   <div className="text-[10px] text-[#6B4B58] font-bold">Cash Balance</div>
                   <div className="text-sm font-mono font-black text-[#10B981]">
-                    ৳{user.balance.toLocaleString()}
+                    ৳{(user.balance ?? 0).toLocaleString()}
                   </div>
                 </div>
-                {user.bonusBalance > 0 && (
+                {(user.bonusBalance ?? 0) > 0 && (
                   <div className="border-l border-[#E6D7B8] pl-2.5">
                     <div className="text-[10px] text-[#6B4B58] font-bold">Bonus</div>
                     <div className="text-xs font-mono font-black text-[#BA2649]">
-                      ৳{user.bonusBalance.toLocaleString()}
+                      ৳{(user.bonusBalance ?? 0).toLocaleString()}
                     </div>
                   </div>
                 )}
