@@ -18,6 +18,7 @@ import {
   Star,
   X,
   Check,
+  Heart,
 } from "lucide-react";
 import LiveMatchBanner from "@/components/sports/LiveMatchBanner";
 import { useUserStore } from "@/lib/store/useUserStore";
@@ -48,13 +49,22 @@ export default function HomePage() {
       badge: "HOTTEST",
     },
     {
+      title: "24/7 Hearts Online",
+      desc: "Authentic 4-Player trick-taking, passing cycle & Shoot the Moon",
+      href: "/casino/hearts",
+      icon: Heart,
+      color: "from-rose-600/30 to-red-600/10",
+      accent: "text-red-500",
+      badge: "NEW RELEASE",
+    },
+    {
       title: "Carrom Board Pro",
       desc: "Authentic 2D physics board with Queen cover 10x jackpot",
       href: "/casino/carrom",
       icon: Layers,
       color: "from-amber-600/30 to-yellow-600/10",
       accent: "text-[#D4AF37]",
-      badge: "NEW RELEASE",
+      badge: "POPULAR",
     },
     {
       title: "European Roulette 3D",

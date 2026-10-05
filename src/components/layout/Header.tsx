@@ -102,6 +102,20 @@ export default function Header() {
               <span>Carrom Board</span>
             </Link>
             <Link
+              href="/casino/hearts"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                pathname.includes("hearts")
+                  ? "bg-[#381523] text-[#FFDE59]"
+                  : "text-[#381523] hover:bg-[#EEDEB8]"
+              }`}
+            >
+              <span className="text-red-600 font-bold text-sm leading-none">♥</span>
+              <span>Hearts</span>
+              <span className="px-1.5 py-0.2 bg-[#BA2649] text-white text-[9px] font-black rounded-full">
+                NEW
+              </span>
+            </Link>
+            <Link
               href="/casino/roulette"
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
                 pathname.includes("roulette")
