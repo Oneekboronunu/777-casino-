@@ -2,51 +2,60 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
+import { AlertCircle, RotateCcw, Home } from 'lucide-react';
+import { useStore } from '@/lib/store/useStore';
 
-export default function ErrorBoundary({
+export default function ErrorPage({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { language, t } = useStore();
+  const isBn = language === 'bn';
+
   useEffect(() => {
-    console.error('Unhandled UI error:', error);
+    // Log client error safely
+    console.error('App Error:', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-darkbg text-slate-900 dark:text-white px-4">
-      <div className="max-w-md w-full text-center p-8 bg-white dark:bg-darkbg-card rounded-xl border border-slate-200 dark:border-slate-800 shadow-md">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 mx-auto flex items-center justify-center mb-4">
-          <AlertTriangle className="w-8 h-8" />
-        </div>
+    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6 space-y-6 bg-slate-50/50">
+      <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-subtle">
+        <AlertCircle className="w-8 h-8" />
+      </div>
 
-        <h2 className="font-headline font-bold text-xl text-slate-900 dark:text-white mb-2">
-          একটি অনাকাঙ্ক্ষিত ত্রুটি ঘটেছে
-        </h2>
-
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-          সার্ভারের সঙ্গে সংযোগে সাময়িক সমস্যা হয়েছে। পৃষ্ঠাটি পুনরায় লোড করতে নিচের বাটনে ক্লিক করুন।
+      <div className="space-y-2 max-w-md">
+        <span className="text-xs uppercase font-bold tracking-widest text-rose-600">
+          SOMETHING WENT WRONG
+        </span>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+          {isBn ? 'কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।' : 'Something went wrong. Please try again.'}
+        </h1>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          {isBn
+            ? 'সাময়িক ত্রুটির জন্য দুঃখিত। পুনরায় পেজ রিফ্রেশ করুন অথবা হোমে ফিরে যান।'
+            : 'We apologize for the inconvenience. Please try reloading the page or return home.'}
         </p>
+      </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button
-            onClick={() => reset()}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-newspaper-navy text-white text-xs font-semibold hover:bg-newspaper-blue transition-colors"
-          >
-            <RefreshCcw className="w-3.5 h-3.5" />
-            <span>আবার চেষ্টা করুন</span>
-          </button>
-
-          <Link
-            href="/"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>প্রচ্ছদ</span>
-          </Link>
-        </div>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => reset()}
+          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-xs transition-colors"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>{isBn ? 'পুনরায় চেষ্টা করুন' : 'Try Again'}</span>
+        </button>
+        <Link
+          href="/"
+          className="px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-2"
+        >
+          <Home className="w-4 h-4 text-brand-600" />
+          <span>{t.common.home}</span>
+        </Link>
       </div>
     </div>
   );

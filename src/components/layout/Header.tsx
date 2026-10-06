@@ -1,283 +1,275 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
-  Wallet,
-  PlusCircle,
-  Volume2,
-  VolumeX,
-  User,
-  Shield,
-  LogOut,
-  Flame,
-  Trophy,
-  Dices,
-  ChevronDown,
-  Layers,
+  ShoppingBag,
+  Heart,
+  Menu,
+  X,
   Sparkles,
-} from "lucide-react";
-import { useUserStore } from "@/lib/store/useUserStore";
-import sound from "@/lib/sound";
+  ShieldCheck,
+  Building,
+  Tag,
+  ChevronDown,
+  MapPin,
+  FileText,
+  PhoneCall
+} from 'lucide-react';
+import { useStore } from '@/lib/store/useStore';
+import AnnouncementBar from './AnnouncementBar';
+import Logo from './Logo';
+import SearchBar from './SearchBar';
+import LanguageSwitcher from './LanguageSwitcher';
+import { CATEGORIES } from '@/data/categories';
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, setIsDepositModalOpen, setIsWithdrawModalOpen, openAuthModal, setUser } = useUserStore();
-  const [isMuted, setIsMuted] = useState(sound.getIsMuted());
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { language, t, getCartCount, wishlist, toggleCart } = useStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
-  const toggleSound = () => {
-    const next = sound.toggleMute();
-    setIsMuted(next);
-  };
+  const cartCount = getCartCount();
+  const wishlistCount = wishlist.length;
+  const isBn = language === 'bn';
+
+  const navLinks = [
+    { href: '/', label: t.common.home },
+    { href: '/shop?category=cleaning-supplies', label: isBn ? 'ক্লিনিং সাপ্লাইজ' : 'Cleaning Supplies' },
+    { href: '/shop?category=hygiene-personal-care', label: isBn ? 'হাইজিন ও পার্সোনাল' : 'Hygiene & Care' },
+    { href: '/shop?category=household-accessories', label: isBn ? 'গৃহস্থালী' : 'Household' },
+    { href: '/offers', label: t.common.offers, highlight: true },
+    { href: '/corporate', label: t.common.corporate },
+    { href: '/locations', label: t.common.locations },
+    { href: '/track-order', label: t.common.orderTracking },
+  ];
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#FBF3DE] border-b border-[#E6D7B8] shadow-sm select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Left: 777 Retro Badge Logo */}
-        <div className="flex items-center space-x-6">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative logo-777-badge px-3.5 py-1.5 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform">
-              <span className="logo-777-text text-2xl font-black tracking-wider leading-none">
-                777
-              </span>
-            </div>
-            <div className="hidden sm:block">
-              <div className="font-black text-sm tracking-wider text-[#381523] uppercase">
-                CASINO & SPORTS
-              </div>
-              <div className="text-[10px] tracking-widest text-[#BA2649] font-bold">
-                RETRO VEGAS EDITION
-              </div>
-            </div>
-          </Link>
+    <header className="sticky top-0 z-40 bg-white shadow-subtle border-b border-slate-100">
+      {/* Top Announcement Bar */}
+      <AnnouncementBar />
 
-          {/* Nav Links */}
-          <nav className="hidden lg:flex items-center space-x-1.5">
-            <Link
-              href="/"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                pathname === "/"
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
+      {/* Main Header Row */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+        <div className="flex items-center justify-between gap-4 lg:gap-8">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 -ml-2 text-slate-700 hover:text-slate-900 lg:hidden rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label="Toggle navigation menu"
             >
-              Home
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            <Logo />
+          </div>
+
+          {/* Central Intelligent Search Bar (Desktop) */}
+          <div className="hidden lg:flex flex-1 max-w-xl mx-auto">
+            <SearchBar />
+          </div>
+
+          {/* Right Action Icons */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
+            {/* Wishlist Link */}
+            <Link
+              href="/wishlist"
+              className="relative p-2 text-slate-700 hover:text-brand-600 rounded-lg hover:bg-slate-50 transition-colors hidden sm:flex items-center justify-center"
+              aria-label={t.common.wishlist}
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
-            <Link
-              href="/sports"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                pathname.startsWith("/sports")
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
+
+            {/* Cart Button */}
+            <button
+              type="button"
+              onClick={toggleCart}
+              className="relative flex items-center gap-2 px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded-lg border border-brand-200 transition-all font-medium text-sm"
+              aria-label={t.common.cart}
             >
-              <Trophy className="w-3.5 h-3.5 text-[#BA2649]" />
-              <span>Sportsbook</span>
-              <span className="px-1.5 py-0.2 bg-[#BA2649] text-white text-[9px] font-black rounded-full">
-                LIVE
+              <ShoppingBag className="w-4 h-4 text-brand-700" />
+              <span className="hidden sm:inline-block">{t.common.cart}</span>
+              <span className="w-5 h-5 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center">
+                {cartCount}
               </span>
-            </Link>
-            <Link
-              href="/casino/aviator"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                pathname.includes("aviator")
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5 text-[#BA2649]" />
-              <span>Aviator</span>
-            </Link>
-            <Link
-              href="/casino/carrom"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                pathname.includes("carrom")
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 text-[#0D9488]" />
-              <span>Carrom Board</span>
-            </Link>
-            <Link
-              href="/casino/hearts"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                pathname.includes("hearts")
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
-            >
-              <span className="text-red-600 font-bold text-sm leading-none">♥</span>
-              <span>Hearts</span>
-              <span className="px-1.5 py-0.2 bg-[#BA2649] text-white text-[9px] font-black rounded-full">
-                NEW
-              </span>
-            </Link>
-            <Link
-              href="/casino/roulette"
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                pathname.includes("roulette")
-                  ? "bg-[#381523] text-[#FFDE59]"
-                  : "text-[#381523] hover:bg-[#EEDEB8]"
-              }`}
-            >
-              <Dices className="w-3.5 h-3.5 text-[#BA2649]" />
-              <span>Roulette 3D</span>
-            </Link>
-          </nav>
+            </button>
+          </div>
         </div>
 
-        {/* Right Section: Sound, Balance & 777 Login / Sign Up */}
-        <div className="flex items-center space-x-3">
-          {/* Sound Toggle */}
-          <button
-            onClick={toggleSound}
-            title={isMuted ? "Unmute Sound" : "Mute Sound"}
-            className="p-2 text-[#381523] hover:text-[#BA2649] bg-[#FEF9E7] border border-[#E6D7B8] rounded-xl transition"
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-
-          {user ? (
-            <div className="flex items-center space-x-2.5">
-              {/* Balance Card */}
-              <div
-                onClick={() => setIsDepositModalOpen(true)}
-                className="hidden sm:flex items-center bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl px-3.5 py-1.5 cursor-pointer transition shadow-sm"
-              >
-                <div className="mr-3">
-                  <div className="text-[10px] text-[#6B4B58] font-bold">Cash Balance</div>
-                  <div className="text-sm font-mono font-black text-[#10B981]">
-                    ৳{(user.balance ?? 0).toLocaleString()}
-                  </div>
-                </div>
-                {(user.bonusBalance ?? 0) > 0 && (
-                  <div className="border-l border-[#E6D7B8] pl-2.5">
-                    <div className="text-[10px] text-[#6B4B58] font-bold">Bonus</div>
-                    <div className="text-xs font-mono font-black text-[#BA2649]">
-                      ৳{(user.bonusBalance ?? 0).toLocaleString()}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Deposit Button */}
-              <button
-                onClick={() => {
-                  setIsDepositModalOpen(true);
-                  sound.playChipClick();
-                }}
-                className="btn-burgundy px-4 py-2 text-xs uppercase tracking-wider"
-              >
-                + Deposit
-              </button>
-
-              {/* Profile Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1.5 p-1.5 bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl transition"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-[#BA2649] text-[#FFDE59] flex items-center justify-center font-black text-xs">
-                    {user.name ? user.name[0].toUpperCase() : "U"}
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#381523]" />
-                </button>
-
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-[#FEF9E7] border-2 border-[#E6D7B8] rounded-xl shadow-2xl py-2 z-50 text-xs text-[#381523]">
-                    <div className="px-3.5 py-2 border-b border-[#E6D7B8]">
-                      <div className="font-bold text-[#381523] truncate">{user.name}</div>
-                      <div className="text-[10px] text-[#6B4B58] truncate">{user.email}</div>
-                      <span className="mt-1 inline-block px-1.5 py-0.5 bg-[#BA2649]/15 text-[#BA2649] rounded text-[9px] font-black">
-                        {user.role} MEMBER
-                      </span>
-                    </div>
-
-                    <Link
-                      href="/wallet"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] font-semibold"
-                    >
-                      <Wallet className="w-4 h-4 text-[#BA2649]" />
-                      <span>Wallet & Banking</span>
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setIsWithdrawModalOpen(true);
-                      }}
-                      className="w-full flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] text-left font-semibold"
-                    >
-                      <PlusCircle className="w-4 h-4 text-[#10B981]" />
-                      <span>Withdraw Cash</span>
-                    </button>
-
-                    <Link
-                      href="/account"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] font-semibold"
-                    >
-                      <User className="w-4 h-4 text-blue-600" />
-                      <span>Account & Bets</span>
-                    </Link>
-
-                    {user.role === "ADMIN" && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center space-x-2 px-3.5 py-2 text-[#BA2649] hover:bg-[#F3E5C8] font-bold"
-                      >
-                        <Shield className="w-4 h-4" />
-                        <span>Admin Controller</span>
-                      </Link>
-                    )}
-
-                    <div className="border-t border-[#E6D7B8] mt-1 pt-1">
-                      <button
-                        onClick={() => {
-                          setUser(null);
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center space-x-2 px-3.5 py-2 text-red-600 hover:bg-[#F3E5C8] text-left font-bold"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Screenshot Replica: Burgundy LOGIN + Teal SIGN UP */
-            <div className="flex items-center space-x-2.5">
-              <button
-                onClick={() => {
-                  openAuthModal("LOGIN");
-                  sound.playChipClick();
-                }}
-                className="btn-burgundy px-7 py-2 text-xs uppercase tracking-wider font-black shadow-retro"
-              >
-                LOGIN
-              </button>
-
-              <button
-                onClick={() => {
-                  openAuthModal("REGISTER");
-                  sound.playChipClick();
-                }}
-                className="btn-teal-outline px-6 py-2 text-xs uppercase tracking-wider font-black shadow-sm"
-              >
-                SIGN UP
-              </button>
-            </div>
-          )}
+        {/* Mobile Search Bar */}
+        <div className="mt-3 lg:hidden">
+          <SearchBar isMobileFull />
         </div>
       </div>
+
+      {/* Secondary Desktop Navigation Bar */}
+      <nav className="hidden lg:block bg-slate-50/80 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-11">
+            <div className="flex items-center gap-1">
+              {/* All Categories Dropdown Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                  onMouseEnter={() => setIsCategoryDropdownOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-md transition-colors mr-2"
+                >
+                  <Menu className="w-3.5 h-3.5" />
+                  <span>{t.common.categories}</span>
+                  <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+                </button>
+
+                {/* Categories Dropdown Menu */}
+                {isCategoryDropdownOpen && (
+                  <div
+                    onMouseLeave={() => setIsCategoryDropdownOpen(false)}
+                    className="absolute left-0 top-full mt-1 w-72 bg-white rounded-xl shadow-elevated border border-slate-100 py-2 z-50 animate-fade-in"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/shop?category=${cat.slug}`}
+                        onClick={() => setIsCategoryDropdownOpen(false)}
+                        className="flex items-center justify-between px-4 py-2.5 hover:bg-brand-50 text-slate-700 hover:text-brand-700 transition-colors group"
+                      >
+                        <span className="text-xs font-medium">
+                          {isBn ? cat.name_bn : cat.name_en}
+                        </span>
+                        <span className="text-[10px] text-slate-400 bg-slate-100 group-hover:bg-brand-100 group-hover:text-brand-700 px-1.5 py-0.5 rounded">
+                          {cat.productCount}
+                        </span>
+                      </Link>
+                    ))}
+                    <div className="border-t border-slate-100 my-1 pt-1">
+                      <Link
+                        href="/shop"
+                        onClick={() => setIsCategoryDropdownOpen(false)}
+                        className="block px-4 py-2 text-xs font-semibold text-brand-600 hover:text-brand-700 text-center"
+                      >
+                        {isBn ? 'সকল ক্যাটাগরি ব্রাউজ করুন →' : 'Browse All Categories →'}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation Links */}
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                      link.highlight
+                        ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                        : isActive
+                        ? 'text-brand-700 bg-brand-50 font-semibold'
+                        : 'text-slate-700 hover:text-brand-600 hover:bg-white'
+                    }`}
+                  >
+                    {link.highlight && <Tag className="w-3 h-3 text-amber-600" />}
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Corporate Quote Quick Button */}
+            <Link
+              href="/corporate"
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-800 transition-colors"
+            >
+              <Building className="w-3.5 h-3.5" />
+              <span>{t.common.quoteRequest}</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer Menu */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Body */}
+          <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl z-10 flex flex-col justify-between overflow-y-auto">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <Logo />
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                {t.common.categories}
+              </div>
+              <div className="space-y-1">
+                {CATEGORIES.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/shop?category=${cat.slug}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between py-2 text-sm text-slate-700 hover:text-brand-600"
+                  >
+                    <span>{isBn ? cat.name_bn : cat.name_en}</span>
+                    <span className="text-xs text-slate-400">({cat.productCount})</span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="border-t border-slate-100 pt-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                {isBn ? 'মেনু' : 'Menu'}
+              </div>
+              <div className="space-y-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 text-sm font-medium text-slate-800 hover:text-brand-600"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-600">{isBn ? 'ভাষা পরিবর্তন:' : 'Language:'}</span>
+                <LanguageSwitcher />
+              </div>
+              <a
+                href="tel:01404005680"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-brand-600 text-white rounded-lg text-xs font-semibold"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>{t.common.callUs}: 01404005680</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

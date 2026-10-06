@@ -1,12 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Cabinet Grotesk', 'Inter', sans-serif;
-  --font-retro: 'Bungee', 'Impact', 'Arial Black', sans-serif;
-  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-bengali: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
 }
 
 * {
@@ -21,152 +21,63 @@ html {
 
 body {
   font-family: var(--font-inter);
-  background-color: #120B10;
-  color: #F8F4EE;
+  background-color: #FFFFFF;
+  color: #0F172A;
   overflow-x: hidden;
-  text-rendering: optimizeSpeed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Eliminate 300ms mobile tap delay */
+/* Natural Bengali rendering helper */
+.lang-bn, [lang="bn"] {
+  font-family: var(--font-bengali), var(--font-inter), sans-serif;
+}
+
+/* Touch optimization */
 button, a, input, select, textarea, [role="button"] {
   touch-action: manipulation;
 }
 
-/* Custom Fast Scrollbar */
+/* Clean minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #120B10;
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #BA2649;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D1345B;
+  background: #94A3B8;
 }
 
-/* 777 Retro 3D Typography */
-.retro-3d-text {
-  font-family: var(--font-retro), sans-serif;
-  color: #FFDE59;
-  text-transform: uppercase;
-  text-shadow: 
-    2px 2px 0px #F59E0B,
-    4px 4px 0px #8B2500,
-    6px 6px 0px #3D1308,
-    8px 8px 15px rgba(0, 0, 0, 0.6);
-  letter-spacing: 0.04em;
-  transform: translateZ(0);
+/* Clean subtle animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.retro-hero-title {
-  font-family: var(--font-playfair), Georgia, serif;
-  font-weight: 900;
-  color: #381523;
-  letter-spacing: -0.01em;
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 777 Badge Logo */
-.logo-777-badge {
-  background: linear-gradient(135deg, #BA2649 0%, #871630 100%);
-  border: 3px solid #FEF9E7;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+/* Focus styles for accessibility */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #16A34A;
+  outline-offset: 2px;
 }
 
-.logo-777-text {
-  font-family: var(--font-retro), 'Impact', sans-serif;
-  color: #FFDE59;
-  text-shadow: 2px 2px 0px #3E1F17, 3px 3px 0px #1A0A08;
-  letter-spacing: 0.05em;
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-/* Retro Vegas Desert Background */
-.vegas-hero-bg {
-  background: 
-    radial-gradient(ellipse at 50% 30%, rgba(254, 240, 138, 0.25) 0%, transparent 60%),
-    linear-gradient(180deg, #4AA5B8 0%, #76CADB 25%, #E2EFF2 55%, #F4D9A8 75%, #D7A667 100%);
-  background-size: cover;
-  background-position: center;
-}
-
-/* Burgundy Button styling */
-.btn-burgundy {
-  background-color: #BA2649;
-  color: #FFFFFF;
-  font-weight: 800;
-  border-radius: 8px;
-  transition: transform 0.12s ease-out, background-color 0.12s ease-out;
-  box-shadow: 0 4px 0 0 #80122B, 0 6px 15px rgba(186, 38, 73, 0.4);
-  transform: translateZ(0);
-}
-
-.btn-burgundy:hover {
-  background-color: #C92B52;
-  transform: translateY(-1px) translateZ(0);
-  box-shadow: 0 5px 0 0 #80122B, 0 8px 20px rgba(186, 38, 73, 0.5);
-}
-
-.btn-burgundy:active {
-  transform: translateY(2px) translateZ(0);
-  box-shadow: 0 2px 0 0 #80122B;
-}
-
-/* Teal Outline Button styling */
-.btn-teal-outline {
-  border: 2px solid #0D9488;
-  color: #0D9488;
-  background-color: #FFFFFF;
-  font-weight: 800;
-  border-radius: 8px;
-  transition: transform 0.12s ease-out, background-color 0.12s ease-out;
-  transform: translateZ(0);
-}
-
-.btn-teal-outline:hover {
-  background-color: #0D9488;
-  color: #FFFFFF;
-  transform: translateY(-1px) translateZ(0);
-}
-
-/* Cream Cookie & Promotion Card */
-.retro-cream-card {
-  background-color: #FEF9E7;
-  border: 1px solid #E6D7B8;
-  border-radius: 16px;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
-  color: #381523;
-}
-
-/* Casino Elevated Card in Retro Dark Theme */
-.casino-card {
-  background: #1C141B;
-  border: 1px solid #342230;
-  border-radius: 14px;
-  transform: translateZ(0);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease-out;
-}
-
-.casino-card:hover {
-  border-color: #BA2649;
-}
-
-/* GPU Acceleration utility */
-.gpu-accelerated {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-/* Optimize Mobile Rendering with Content-Visibility */
-.content-lazy {
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 400px;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
