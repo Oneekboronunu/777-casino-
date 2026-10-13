@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   User,
   Crown,
@@ -13,13 +14,38 @@ import {
   Lock,
   Clock,
   Sparkles,
+  Coins,
+  Palette,
+  Gift,
+  PlusCircle,
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import CoinIcon from "@/components/common/CoinIcon";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { DECORATIONS_CATALOG, DecorationItem } from "@/data/decorations";
 
-export default function AccountPage() {
-  const { user, showNotification } = useUserStore();
-  const [activeTab, setActiveTab] = useState<"PROFILE" | "HISTORY" | "REFERRAL" | "RESPONSIBLE">("PROFILE");
+function AccountPageContent() {
+  const searchParams = useSearchParams();
+  const {
+    user,
+    showNotification,
+    setIsCoinStoreOpen,
+    spendCoins,
+    equipFrame,
+    equipGameSkin,
+    claimDailyCoins,
+  } = useUserStore();
+
+  const initialTab = searchParams?.get("tab") === "FRAMES" ? "FRAMES" : "PROFILE";
+  const [activeTab, setActiveTab] = useState<
+    "PROFILE" | "FRAMES" | "HISTORY" | "REFERRAL" | "RESPONSIBLE"
+  >(initialTab);
+
+  const [decorationFilter, setDecorationFilter] = useState<"ALL" | "FRAME" | "TABLE_SKIN">("ALL");
+  const [previewFrameId, setPreviewFrameId] = useState<string>(
+    user?.equippedFrame || "frame-classic"
+  );
   const [copied, setCopied] = useState(false);
   const [depositLimit, setDepositLimit] = useState<number>(50000);
   const [lossLimit, setLossLimit] = useState<number>(20000);
@@ -28,6 +54,12 @@ export default function AccountPage() {
   useEffect(() => {
     fetchBets();
   }, []);
+
+  useEffect(() => {
+    if (user?.equippedFrame) {
+      setPreviewFrameId(user.equippedFrame);
+    }
+  }, [user?.equippedFrame]);
 
   const fetchBets = async () => {
     try {
@@ -56,14 +88,64 @@ export default function AccountPage() {
     showNotification(`Responsible gambling limits updated: ৳${depositLimit.toLocaleString()}/day`, "SUCCESS");
   };
 
+  const handleBuyOrEquip = (item: DecorationItem) => {
+    if (!user) {
+      showNotification("Please log in first", "ERROR");
+      return;
+    }
+
+    const isOwned = (user.inventory || []).includes(item.id) || item.price === 0;
+
+    if (isOwned) {
+      if (item.type === "FRAME") {
+        equipFrame(item.id);
+        setPreviewFrameId(item.id);
+        sound.playChipClick();
+      } else {
+        equipGameSkin(item.id);
+        sound.playChipClick();
+      }
+      return;
+    }
+
+    // Try to purchase with coins
+    if ((user.coins || 0) < item.price) {
+      sound.playChipClick();
+      showNotification(
+        `Insufficient coins! You need ${item.price.toLocaleString()} Coins. Opening Coin Store...`,
+        "ERROR"
+      );
+      setIsCoinStoreOpen(true);
+      return;
+    }
+
+    const ok = spendCoins(item.price, item.id);
+    if (ok) {
+      sound.playWin();
+      if (item.type === "FRAME") {
+        equipFrame(item.id);
+        setPreviewFrameId(item.id);
+      } else {
+        equipGameSkin(item.id);
+      }
+    }
+  };
+
+  const filteredCatalog = DECORATIONS_CATALOG.filter((item) => {
+    if (decorationFilter === "ALL") return true;
+    return item.type === decorationFilter;
+  });
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
       {/* Account Hero Card */}
-      <div className="bg-[#111827] border border-[#23334E] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="bg-[#111827] border border-[#23334E] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#997A1E] flex items-center justify-center font-black text-2xl text-[#0B0F1A] shadow-gold">
-            {user?.name ? user.name[0].toUpperCase() : "U"}
-          </div>
+          <AvatarWithFrame
+            name={user?.name || "VIP Player"}
+            frameId={user?.equippedFrame || "frame-classic"}
+            size="lg"
+          />
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-black text-white">{user?.name || "VIP Player"}</h1>
@@ -75,17 +157,41 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Quick Balance Summary */}
-        <div className="flex items-center space-x-4 text-center md:text-right">
-          <div className="p-3 bg-[#0B0F1A] border border-[#23334E] rounded-xl">
-            <span className="text-[10px] text-gray-400 block">Withdrawable Cash</span>
-            <span className="text-lg font-mono font-bold text-[#10B981]">
+        {/* Quick Balance Summary with 777 Coins */}
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3">
+          {/* Lucky Coins Pill */}
+          <div
+            onClick={() => {
+              setIsCoinStoreOpen(true);
+              sound.playChipClick();
+            }}
+            className="p-3 bg-[#1C0F17] border border-[#FFDE59]/40 hover:border-[#FFDE59] rounded-2xl cursor-pointer transition shadow-md group"
+            title="Click to buy or claim free coins"
+          >
+            <div className="flex items-center space-x-2">
+              <CoinIcon size="md" animated />
+              <div className="text-left">
+                <div className="text-[10px] text-amber-300 font-bold uppercase flex items-center space-x-1">
+                  <span>Lucky Coins</span>
+                  <span className="text-[9px] bg-[#BA2649] text-white px-1 rounded font-black">+BUY</span>
+                </div>
+                <div className="text-base font-mono font-black text-[#FFDE59]">
+                  {(user?.coins ?? 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-[#0B0F1A] border border-[#23334E] rounded-2xl min-w-[110px] text-center">
+            <span className="text-[10px] text-gray-400 block font-semibold">Withdrawable Cash</span>
+            <span className="text-base font-mono font-bold text-[#10B981]">
               ৳{user?.balance?.toLocaleString() || "0"}
             </span>
           </div>
-          <div className="p-3 bg-[#0B0F1A] border border-[#23334E] rounded-xl">
-            <span className="text-[10px] text-gray-400 block">Bonus Wallet</span>
-            <span className="text-lg font-mono font-bold text-[#D4AF37]">
+
+          <div className="p-3 bg-[#0B0F1A] border border-[#23334E] rounded-2xl min-w-[100px] text-center">
+            <span className="text-[10px] text-gray-400 block font-semibold">Bonus Wallet</span>
+            <span className="text-base font-mono font-bold text-[#D4AF37]">
               ৳{user?.bonusBalance?.toLocaleString() || "0"}
             </span>
           </div>
@@ -96,6 +202,7 @@ export default function AccountPage() {
       <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 bg-[#111827] p-2 rounded-2xl border border-[#23334E]">
         {[
           { id: "PROFILE", label: "Profile Details", icon: User },
+          { id: "FRAMES", label: "Frames & Shop (Coins 🪙)", icon: Sparkles },
           { id: "HISTORY", label: "Betting Tickets", icon: Receipt },
           { id: "REFERRAL", label: "Referral Program (+৳1,000)", icon: Share2 },
           { id: "RESPONSIBLE", label: "Responsible Gaming", icon: Shield },
@@ -122,7 +229,7 @@ export default function AccountPage() {
         })}
       </div>
 
-      {/* Tab Contents */}
+      {/* Tab Contents: PROFILE */}
       {activeTab === "PROFILE" && (
         <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-6 space-y-4">
           <h2 className="text-sm font-bold text-white border-b border-[#23334E]/60 pb-3">
@@ -138,8 +245,11 @@ export default function AccountPage() {
               <span className="text-sm font-bold text-white">{user?.email}</span>
             </div>
             <div className="p-3.5 bg-[#0B0F1A] border border-[#23334E] rounded-xl">
-              <span className="text-gray-400 block text-[10px]">Account Currency</span>
-              <span className="text-sm font-bold text-white">BDT (Bangladeshi Taka ৳)</span>
+              <span className="text-gray-400 block text-[10px]">Lucky Coins Balance</span>
+              <span className="text-sm font-mono font-bold text-[#FFDE59] flex items-center space-x-1.5 mt-0.5">
+                <CoinIcon size="xs" />
+                <span>{(user?.coins ?? 0).toLocaleString()} Coins</span>
+              </span>
             </div>
             <div className="p-3.5 bg-[#0B0F1A] border border-[#23334E] rounded-xl">
               <span className="text-gray-400 block text-[10px]">KYC Verification Status</span>
@@ -149,6 +259,196 @@ export default function AccountPage() {
         </div>
       )}
 
+      {/* Tab Contents: FRAMES & DECORATIONS SHOP */}
+      {activeTab === "FRAMES" && (
+        <div className="space-y-6">
+          {/* Header Banner & Quick Actions */}
+          <div className="bg-gradient-to-r from-[#2B101D] via-[#1B0C16] to-[#2B101D] border-2 border-[#D4AF37]/40 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+            <div className="flex items-center space-x-5">
+              <AvatarWithFrame
+                name={user?.name || "Player"}
+                frameId={previewFrameId}
+                size="xl"
+              />
+              <div>
+                <span className="px-2.5 py-0.5 bg-[#FFDE59]/20 text-[#FFDE59] text-[10px] font-black rounded-full border border-[#FFDE59]/30 uppercase">
+                  Live Avatar Preview
+                </span>
+                <h3 className="text-lg font-black text-white mt-1">Profile Frames & Game Skins</h3>
+                <p className="text-xs text-amber-200/80 max-w-sm mt-0.5">
+                  Decorate your profile and game tables. Frames shine in <strong>24/7 Hearts</strong>,{" "}
+                  <strong>Carrom</strong>, and on the leaderboard!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              {/* Daily Free Coins Button */}
+              <button
+                onClick={() => {
+                  const res = claimDailyCoins();
+                  if (res.success) sound.playWin();
+                  else {
+                    sound.playChipClick();
+                    showNotification(res.message, "INFO");
+                  }
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 bg-[#23121E] border border-[#FFDE59]/50 hover:border-[#FFDE59] text-[#FFDE59] rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-2 transition shadow"
+              >
+                <Gift className="w-4 h-4 text-[#BA2649]" />
+                <span>Claim Free 350 Coins</span>
+              </button>
+
+              {/* Buy Coins with MFS Button */}
+              <button
+                onClick={() => {
+                  setIsCoinStoreOpen(true);
+                  sound.playChipClick();
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-[#BA2649] via-[#D12053] to-[#BA2649] text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-2 shadow-retro hover:brightness-110 transition"
+              >
+                <CoinIcon size="sm" />
+                <span>Buy Coins with BDT (bKash/Nagad)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Catalog Filter Controls */}
+          <div className="flex items-center space-x-2 bg-[#111827] p-2 rounded-2xl border border-[#23334E] overflow-x-auto">
+            {[
+              { id: "ALL", label: "All Items" },
+              { id: "FRAME", label: "Avatar Frames" },
+              { id: "TABLE_SKIN", label: "Game Table Skins" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => {
+                  setDecorationFilter(f.id as any);
+                  sound.playChipClick();
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  decorationFilter === f.id
+                    ? "bg-[#D4AF37] text-[#0B0F1A] font-black"
+                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Items Catalog Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCatalog.map((item) => {
+              const isEquipped =
+                item.type === "FRAME"
+                  ? (user?.equippedFrame || "frame-classic") === item.id
+                  : (user?.equippedGameSkin || "skin-felt-green") === item.id;
+              const isOwned =
+                (user?.inventory || []).includes(item.id) || item.price === 0;
+
+              return (
+                <div
+                  key={item.id}
+                  onMouseEnter={() => {
+                    if (item.type === "FRAME") setPreviewFrameId(item.id);
+                  }}
+                  onMouseLeave={() => {
+                    setPreviewFrameId(user?.equippedFrame || "frame-classic");
+                  }}
+                  className={`relative p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                    isEquipped
+                      ? "bg-[#21121B] border-[#FFDE59] shadow-[0_0_15px_rgba(255,222,89,0.25)]"
+                      : "bg-[#111827] border-[#23334E] hover:border-amber-400/60"
+                  }`}
+                >
+                  {/* Top Badges */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span
+                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                        item.rarity === "LEGENDARY"
+                          ? "bg-purple-900/60 text-purple-300 border border-purple-500/40"
+                          : item.rarity === "EPIC"
+                          ? "bg-amber-900/60 text-amber-300 border border-amber-500/40"
+                          : item.rarity === "RARE"
+                          ? "bg-blue-900/60 text-blue-300 border border-blue-500/40"
+                          : "bg-gray-800 text-gray-400"
+                      }`}
+                    >
+                      {item.rarity}
+                    </span>
+
+                    {item.badge && (
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#BA2649] text-white uppercase shadow">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Visual Preview */}
+                  <div className="py-3 flex flex-col items-center justify-center">
+                    {item.type === "FRAME" ? (
+                      <AvatarWithFrame
+                        name={user?.name || "Player"}
+                        frameId={item.id}
+                        size="lg"
+                      />
+                    ) : (
+                      <div
+                        className={`w-32 h-20 rounded-2xl bg-gradient-to-br ${item.previewGradient} border-2 border-white/20 shadow-lg flex items-center justify-center`}
+                      >
+                        <span className="text-xs font-black text-white/90 drop-shadow">
+                          777 CASINO
+                        </span>
+                      </div>
+                    )}
+
+                    <h4 className="text-base font-black text-white mt-3 text-center">
+                      {item.name}
+                    </h4>
+                    <p className="text-xs text-gray-400 text-center mt-1 px-2 line-clamp-2">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* Bottom Action Section */}
+                  <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <div>
+                      {item.price === 0 ? (
+                        <span className="text-xs font-black text-emerald-400 uppercase">
+                          Free Default
+                        </span>
+                      ) : (
+                        <div className="flex items-center space-x-1.5">
+                          <CoinIcon size="sm" />
+                          <span className="font-mono font-black text-sm text-[#FFDE59]">
+                            {item.price.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleBuyOrEquip(item)}
+                      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition ${
+                        isEquipped
+                          ? "bg-emerald-600 text-white cursor-default"
+                          : isOwned
+                          ? "bg-white text-black hover:bg-gray-200 shadow"
+                          : "bg-gradient-to-r from-[#FFDE59] to-amber-500 text-black hover:brightness-105 shadow-md"
+                      }`}
+                    >
+                      {isEquipped ? "Equipped ✓" : isOwned ? "Equip" : "Unlock"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab Contents: HISTORY */}
       {activeTab === "HISTORY" && (
         <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-6 space-y-4">
           <h2 className="text-sm font-bold text-white border-b border-[#23334E]/60 pb-3">
@@ -204,6 +504,7 @@ export default function AccountPage() {
         </div>
       )}
 
+      {/* Tab Contents: REFERRAL */}
       {activeTab === "REFERRAL" && (
         <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-6 sm:p-8 space-y-6">
           <div>
@@ -246,6 +547,7 @@ export default function AccountPage() {
         </div>
       )}
 
+      {/* Tab Contents: RESPONSIBLE */}
       {activeTab === "RESPONSIBLE" && (
         <div className="bg-[#111827] border border-[#23334E] rounded-2xl p-6 space-y-6">
           <div>
@@ -286,5 +588,19 @@ export default function AccountPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs font-mono font-bold text-amber-300">
+          Loading 777 Account & Treasury...
+        </div>
+      }
+    >
+      <AccountPageContent />
+    </Suspense>
   );
 }

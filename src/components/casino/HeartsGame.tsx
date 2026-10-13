@@ -21,6 +21,8 @@ import {
 import confetti from "canvas-confetti";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import CoinIcon from "@/components/common/CoinIcon";
 
 // Suit & Rank Definitions
 export type Suit = "CLUBS" | "DIAMONDS" | "SPADES" | "HEARTS";
@@ -596,6 +598,20 @@ export default function HeartsGame() {
     );
   };
 
+  const getTableSkinClass = () => {
+    switch (user?.equippedGameSkin) {
+      case "skin-burgundy-velvet":
+        return "bg-gradient-to-b from-[#5C1425] via-[#380D17] to-[#1F060D] border-8 border-[#522915] shadow-[0_30px_70px_rgba(92,20,37,0.8)]";
+      case "skin-cyber-midnight":
+        return "bg-gradient-to-b from-[#0F172A] via-[#090D16] to-[#020617] border-8 border-[#06B6D4]/50 shadow-[0_30px_70px_rgba(6,182,212,0.4)]";
+      case "skin-golden-palace":
+        return "bg-gradient-to-b from-[#523C0A] via-[#3B2904] to-[#1C1402] border-8 border-[#F5B301] shadow-[0_30px_70px_rgba(245,179,1,0.5)]";
+      case "skin-felt-green":
+      default:
+        return "bg-gradient-to-b from-[#144820] via-[#0D3316] to-[#08200E] border-8 border-[#2D1B10] shadow-[0_30px_70px_rgba(0,0,0,0.9)]";
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-[#0C150E] text-white select-none font-sans p-3 sm:p-6 flex flex-col items-center justify-center">
       {/* ========================================================================= */}
@@ -758,7 +774,7 @@ export default function HeartsGame() {
       {/* 3. MAIN TABLE ARENA (Matching Table Screenshot 4) */}
       {/* ========================================================================= */}
       {(stage === "PASSING" || stage === "PLAYING" || stage === "ROUND_END" || stage === "GAME_OVER") && (
-        <div className="w-full max-w-5xl bg-gradient-to-b from-[#144820] via-[#0D3316] to-[#08200E] border-8 border-[#2D1B10] rounded-[40px] shadow-[0_30px_70px_rgba(0,0,0,0.9)] p-4 sm:p-6 flex flex-col justify-between min-h-[680px] relative overflow-hidden">
+        <div className={`w-full max-w-5xl ${getTableSkinClass()} rounded-[40px] p-4 sm:p-6 flex flex-col justify-between min-h-[680px] relative overflow-hidden transition-all duration-500`}>
           
           {/* Top Control Bar with Home, Help, Round, Sound */}
           <div className="flex items-center justify-between z-10 px-2 mb-2">
@@ -801,7 +817,8 @@ export default function HeartsGame() {
 
           {/* TOP PLAYER: Donald */}
           <div className="flex flex-col items-center justify-center z-10">
-            <div className="flex items-center space-x-2 bg-[#000000]/60 px-3.5 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+            <div className="flex items-center space-x-2 bg-[#000000]/70 px-3.5 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+              <AvatarWithFrame name="Donald" frameId="frame-gold-777" size="xs" />
               <span className="text-xs font-bold text-white">Donald</span>
               <div className="flex items-center space-x-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[11px] font-black">
                 <span>♥</span>
@@ -821,7 +838,8 @@ export default function HeartsGame() {
           <div className="flex items-center justify-between w-full my-auto px-2 sm:px-6">
             {/* LEFT PLAYER: Betsy */}
             <div className="flex flex-col items-center space-y-1">
-              <div className="flex items-center space-x-1.5 bg-[#000000]/60 px-3 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+              <div className="flex items-center space-x-1.5 bg-[#000000]/70 px-3 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+                <AvatarWithFrame name="Betsy" frameId="frame-neon-vegas" size="xs" />
                 <span className="text-xs font-bold text-white">Betsy</span>
                 <div className="flex items-center space-x-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[11px] font-black">
                   <span>♥</span>
@@ -969,7 +987,8 @@ export default function HeartsGame() {
 
             {/* RIGHT PLAYER: Leroy */}
             <div className="flex flex-col items-center space-y-1">
-              <div className="flex items-center space-x-1.5 bg-[#000000]/60 px-3 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+              <div className="flex items-center space-x-1.5 bg-[#000000]/70 px-3 py-1.5 rounded-2xl border border-gray-700 shadow-md">
+                <AvatarWithFrame name="Leroy" frameId="frame-emerald-vip" size="xs" />
                 <span className="text-xs font-bold text-white">Leroy</span>
                 <div className="flex items-center space-x-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[11px] font-black">
                   <span>♥</span>
@@ -988,6 +1007,11 @@ export default function HeartsGame() {
           <div className="w-full flex flex-col items-center z-20 space-y-2">
             {/* Player Info Badge */}
             <div className="flex items-center space-x-2 bg-[#000000]/70 px-4 py-1.5 rounded-2xl border border-[#FFDE59]/50 shadow-md">
+              <AvatarWithFrame
+                name={players.YOU.name}
+                frameId={user?.equippedFrame || "frame-classic"}
+                size="xs"
+              />
               <span className="text-xs font-black text-[#FFDE59]">{players.YOU.name} (You)</span>
               <div className="flex items-center space-x-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[11px] font-black">
                 <span>♥</span>

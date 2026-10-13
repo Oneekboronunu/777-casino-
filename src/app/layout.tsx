@@ -26,6 +26,10 @@ export const metadata: Metadata = {
     "Nagad Betting",
     "Rocket Casino",
   ],
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

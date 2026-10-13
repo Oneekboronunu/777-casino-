@@ -20,10 +20,19 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
+import CoinIcon from "@/components/common/CoinIcon";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, setIsDepositModalOpen, setIsWithdrawModalOpen, openAuthModal, setUser } = useUserStore();
+  const {
+    user,
+    setIsDepositModalOpen,
+    setIsWithdrawModalOpen,
+    setIsCoinStoreOpen,
+    openAuthModal,
+    setUser,
+  } = useUserStore();
   const [isMuted, setIsMuted] = useState(sound.getIsMuted());
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
@@ -130,7 +139,7 @@ export default function Header() {
         </div>
 
         {/* Right Section: Sound, Balance & 777 Login / Sign Up */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Sound Toggle */}
           <button
             onClick={toggleSound}
@@ -141,20 +150,43 @@ export default function Header() {
           </button>
 
           {user ? (
-            <div className="flex items-center space-x-2.5">
-              {/* Balance Card */}
+            <div className="flex items-center space-x-2 sm:space-x-2.5">
+              {/* Coin Balance Pill (Opens Coin Treasury) */}
+              <div
+                onClick={() => {
+                  setIsCoinStoreOpen(true);
+                  sound.playChipClick();
+                }}
+                className="flex items-center space-x-1.5 bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#F5B301] rounded-xl px-2.5 py-1.5 cursor-pointer transition shadow-sm group"
+                title="777 Lucky Coins — Buy with bKash/Nagad or claim free daily coins"
+              >
+                <CoinIcon size="sm" animated />
+                <div className="text-left">
+                  <div className="text-[8px] sm:text-[9px] text-[#8A5800] font-black uppercase leading-tight">
+                    Coins
+                  </div>
+                  <div className="text-xs font-mono font-black text-[#B45309] leading-tight">
+                    {(user.coins ?? 0).toLocaleString()}
+                  </div>
+                </div>
+                <span className="w-4 h-4 rounded-full bg-[#F5B301] text-[#3D2500] font-black text-[10px] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                  +
+                </span>
+              </div>
+
+              {/* Cash Balance Card */}
               <div
                 onClick={() => setIsDepositModalOpen(true)}
-                className="hidden sm:flex items-center bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl px-3.5 py-1.5 cursor-pointer transition shadow-sm"
+                className="hidden sm:flex items-center bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl px-3 py-1.5 cursor-pointer transition shadow-sm"
               >
-                <div className="mr-3">
+                <div className="mr-2.5">
                   <div className="text-[10px] text-[#6B4B58] font-bold">Cash Balance</div>
                   <div className="text-sm font-mono font-black text-[#10B981]">
                     ৳{(user.balance ?? 0).toLocaleString()}
                   </div>
                 </div>
                 {(user.bonusBalance ?? 0) > 0 && (
-                  <div className="border-l border-[#E6D7B8] pl-2.5">
+                  <div className="border-l border-[#E6D7B8] pl-2">
                     <div className="text-[10px] text-[#6B4B58] font-bold">Bonus</div>
                     <div className="text-xs font-mono font-black text-[#BA2649]">
                       ৳{(user.bonusBalance ?? 0).toLocaleString()}
@@ -169,32 +201,61 @@ export default function Header() {
                   setIsDepositModalOpen(true);
                   sound.playChipClick();
                 }}
-                className="btn-burgundy px-4 py-2 text-xs uppercase tracking-wider"
+                className="btn-burgundy px-3.5 py-2 text-xs uppercase tracking-wider"
               >
                 + Deposit
               </button>
 
-              {/* Profile Dropdown */}
+              {/* Profile Dropdown with Avatar Frame */}
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1.5 p-1.5 bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl transition"
+                  className="flex items-center space-x-1.5 p-1 bg-[#FEF9E7] border-2 border-[#E6D7B8] hover:border-[#BA2649] rounded-xl transition"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[#BA2649] text-[#FFDE59] flex items-center justify-center font-black text-xs">
-                    {user.name ? user.name[0].toUpperCase() : "U"}
-                  </div>
+                  <AvatarWithFrame
+                    name={user.name}
+                    frameId={user.equippedFrame || "frame-classic"}
+                    size="sm"
+                  />
                   <ChevronDown className="w-3.5 h-3.5 text-[#381523]" />
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-[#FEF9E7] border-2 border-[#E6D7B8] rounded-xl shadow-2xl py-2 z-50 text-xs text-[#381523]">
+                  <div className="absolute right-0 mt-2 w-56 bg-[#FEF9E7] border-2 border-[#E6D7B8] rounded-xl shadow-2xl py-2 z-50 text-xs text-[#381523]">
                     <div className="px-3.5 py-2 border-b border-[#E6D7B8]">
                       <div className="font-bold text-[#381523] truncate">{user.name}</div>
                       <div className="text-[10px] text-[#6B4B58] truncate">{user.email}</div>
-                      <span className="mt-1 inline-block px-1.5 py-0.5 bg-[#BA2649]/15 text-[#BA2649] rounded text-[9px] font-black">
-                        {user.role} MEMBER
-                      </span>
+                      <div className="flex items-center space-x-1.5 mt-1">
+                        <span className="px-1.5 py-0.5 bg-[#BA2649]/15 text-[#BA2649] rounded text-[9px] font-black">
+                          {user.role} MEMBER
+                        </span>
+                        <span className="px-1.5 py-0.5 bg-[#F5B301]/20 text-[#8A5800] rounded text-[9px] font-black flex items-center space-x-1">
+                          <CoinIcon size="xs" />
+                          <span>{(user.coins ?? 0).toLocaleString()}</span>
+                        </span>
+                      </div>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        setIsCoinStoreOpen(true);
+                        sound.playChipClick();
+                      }}
+                      className="w-full flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] text-left font-semibold text-[#8A5800]"
+                    >
+                      <CoinIcon size="xs" />
+                      <span>Coin Treasury & MFS Store</span>
+                    </button>
+
+                    <Link
+                      href="/account?tab=FRAMES"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center space-x-2 px-3.5 py-2 hover:bg-[#F3E5C8] font-semibold text-[#BA2649]"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#BA2649]" />
+                      <span>Frames & Decorations</span>
+                    </Link>
 
                     <Link
                       href="/wallet"

@@ -70,6 +70,10 @@ export async function GET() {
         bonusBalance: 2000,
         currency: "BDT",
         referralCode: "WELCOME777",
+        coins: 1500,
+        equippedFrame: "frame-classic",
+        equippedGameSkin: "skin-felt-green",
+        inventory: ["frame-classic", "skin-felt-green"],
       },
     });
   } catch (error) {
@@ -85,6 +89,10 @@ export async function GET() {
         bonusBalance: 2000,
         currency: "BDT",
         referralCode: "WELCOME777",
+        coins: 1500,
+        equippedFrame: "frame-classic",
+        equippedGameSkin: "skin-felt-green",
+        inventory: ["frame-classic", "skin-felt-green"],
       },
     });
   }

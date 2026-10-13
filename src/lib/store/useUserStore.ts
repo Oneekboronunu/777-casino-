@@ -10,6 +10,12 @@ export interface UserProfile {
   bonusBalance: number;
   currency: string;
   referralCode?: string | null;
+  // Coins & Decorations System
+  coins: number;
+  equippedFrame: string;
+  equippedGameSkin: string;
+  inventory: string[];
+  lastDailyClaim?: string | null;
 }
 
 interface UserStoreState {
@@ -17,6 +23,7 @@ interface UserStoreState {
   isLoading: boolean;
   isDepositModalOpen: boolean;
   isWithdrawModalOpen: boolean;
+  isCoinStoreOpen: boolean;
   isAuthModalOpen: boolean;
   authModalMode: "LOGIN" | "REGISTER";
   notification: { message: string; type: "SUCCESS" | "ERROR" | "INFO" } | null;
@@ -27,23 +34,70 @@ interface UserStoreState {
   setExactBalance: (balance: number, bonusBalance?: number) => void;
   setIsDepositModalOpen: (open: boolean) => void;
   setIsWithdrawModalOpen: (open: boolean) => void;
+  setIsCoinStoreOpen: (open: boolean) => void;
   openAuthModal: (mode?: "LOGIN" | "REGISTER") => void;
   closeAuthModal: () => void;
   showNotification: (message: string, type?: "SUCCESS" | "ERROR" | "INFO") => void;
   clearNotification: () => void;
   fetchUser: () => Promise<void>;
+
+  // Currency & Decoration Actions
+  addCoins: (amount: number, reason?: string) => void;
+  spendCoins: (amount: number, itemId: string) => boolean;
+  equipFrame: (frameId: string) => void;
+  equipGameSkin: (skinId: string) => void;
+  claimDailyCoins: () => { success: boolean; amount: number; message: string };
 }
+
+const STORAGE_KEY = "777_casino_coins_profile_v2";
+
+const loadSavedProfileData = (): Partial<UserProfile> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Failed to load saved profile data", e);
+  }
+  return {};
+};
+
+const saveProfileData = (data: Partial<UserProfile>) => {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = loadSavedProfileData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, ...data }));
+  } catch (e) {
+    console.error("Failed to save profile data", e);
+  }
+};
 
 export const useUserStore = create<UserStoreState>((set, get) => ({
   user: null,
   isLoading: false,
   isDepositModalOpen: false,
   isWithdrawModalOpen: false,
+  isCoinStoreOpen: false,
   isAuthModalOpen: false,
   authModalMode: "LOGIN",
   notification: null,
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (!user) {
+      set({ user: null });
+      return;
+    }
+    const saved = loadSavedProfileData();
+    const mergedUser: UserProfile = {
+      ...user,
+      coins: saved.coins !== undefined ? saved.coins : user.coins ?? 1500,
+      equippedFrame: saved.equippedFrame || user.equippedFrame || "frame-classic",
+      equippedGameSkin: saved.equippedGameSkin || user.equippedGameSkin || "skin-felt-green",
+      inventory: saved.inventory || user.inventory || ["frame-classic", "skin-felt-green"],
+      lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : user.lastDailyClaim ?? null,
+    };
+    set({ user: mergedUser });
+  },
 
   updateBalance: (delta) => {
     const { user } = get();
@@ -72,6 +126,7 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
 
   setIsDepositModalOpen: (open) => set({ isDepositModalOpen: open }),
   setIsWithdrawModalOpen: (open) => set({ isWithdrawModalOpen: open }),
+  setIsCoinStoreOpen: (open) => set({ isCoinStoreOpen: open }),
 
   openAuthModal: (mode = "LOGIN") => set({ isAuthModalOpen: true, authModalMode: mode }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
@@ -95,7 +150,16 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
-          set({ user: data.user });
+          const saved = loadSavedProfileData();
+          const mergedUser: UserProfile = {
+            ...data.user,
+            coins: saved.coins !== undefined ? saved.coins : (data.user.coins ?? 1500),
+            equippedFrame: saved.equippedFrame || data.user.equippedFrame || "frame-classic",
+            equippedGameSkin: saved.equippedGameSkin || data.user.equippedGameSkin || "skin-felt-green",
+            inventory: saved.inventory || data.user.inventory || ["frame-classic", "skin-felt-green"],
+            lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : (data.user.lastDailyClaim ?? null),
+          };
+          set({ user: mergedUser });
         }
       }
     } catch (e) {
@@ -103,5 +167,97 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  addCoins: (amount, reason) => {
+    const { user, showNotification } = get();
+    if (!user) return;
+    const nextCoins = Math.max(0, (user.coins || 0) + amount);
+    const updated = { ...user, coins: nextCoins };
+    set({ user: updated });
+    saveProfileData({ coins: nextCoins });
+    if (reason) {
+      showNotification(`+${amount.toLocaleString()} Coins added! (${reason})`, "SUCCESS");
+    }
+  },
+
+  spendCoins: (amount, itemId) => {
+    const { user, showNotification } = get();
+    if (!user) {
+      showNotification("Please sign in to buy items", "ERROR");
+      return false;
+    }
+    const currentCoins = user.coins || 0;
+    if (currentCoins < amount) {
+      showNotification(`Insufficient Coins! Need ${amount.toLocaleString()} Coins.`, "ERROR");
+      return false;
+    }
+    const nextCoins = currentCoins - amount;
+    const nextInventory = Array.from(new Set([...(user.inventory || []), itemId]));
+    const updated = {
+      ...user,
+      coins: nextCoins,
+      inventory: nextInventory,
+    };
+    set({ user: updated });
+    saveProfileData({ coins: nextCoins, inventory: nextInventory });
+    showNotification(`Unlocked item successfully!`, "SUCCESS");
+    return true;
+  },
+
+  equipFrame: (frameId) => {
+    const { user, showNotification } = get();
+    if (!user) return;
+    const updated = { ...user, equippedFrame: frameId };
+    set({ user: updated });
+    saveProfileData({ equippedFrame: frameId });
+    showNotification("Avatar frame updated!", "SUCCESS");
+  },
+
+  equipGameSkin: (skinId) => {
+    const { user, showNotification } = get();
+    if (!user) return;
+    const updated = { ...user, equippedGameSkin: skinId };
+    set({ user: updated });
+    saveProfileData({ equippedGameSkin: skinId });
+    showNotification("Game table decoration updated!", "SUCCESS");
+  },
+
+  claimDailyCoins: () => {
+    const { user, showNotification } = get();
+    if (!user) {
+      return { success: false, amount: 0, message: "Please log in to claim daily coins." };
+    }
+    const now = Date.now();
+    const lastClaim = user.lastDailyClaim ? new Date(user.lastDailyClaim).getTime() : 0;
+    const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    if (now - lastClaim < COOLDOWN_MS) {
+      const remainingHours = Math.ceil((COOLDOWN_MS - (now - lastClaim)) / (1000 * 60 * 60));
+      return {
+        success: false,
+        amount: 0,
+        message: `Already claimed today! Next claim ready in ~${remainingHours} hours.`,
+      };
+    }
+
+    const rewardAmount = 350; // 350 Free Lucky Coins
+    const nextCoins = (user.coins || 0) + rewardAmount;
+    const nowIso = new Date().toISOString();
+
+    const updated = {
+      ...user,
+      coins: nextCoins,
+      lastDailyClaim: nowIso,
+    };
+    set({ user: updated });
+    saveProfileData({ coins: nextCoins, lastDailyClaim: nowIso });
+    showNotification(`Claimed +${rewardAmount} Daily Free Coins! 🎉`, "SUCCESS");
+
+    return {
+      success: true,
+      amount: rewardAmount,
+      message: `You received ${rewardAmount} Free Coins!`,
+    };
   },
 }));

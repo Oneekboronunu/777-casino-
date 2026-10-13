@@ -8,6 +8,7 @@ import MobileNav from "./MobileNav";
 import BetSlipDrawer from "@/components/betslip/BetSlipDrawer";
 import DepositModal from "@/components/wallet/DepositModal";
 import WithdrawModal from "@/components/wallet/WithdrawModal";
+import CoinStoreModal from "@/components/wallet/CoinStoreModal";
 import AuthModal from "@/components/auth/AuthModal";
 import { useUserStore } from "@/lib/store/useUserStore";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
@@ -109,6 +110,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
             <BetSlipDrawer />
             <DepositModal />
             <WithdrawModal />
+            <CoinStoreModal />
             <AuthModal />
           </>
         )}
