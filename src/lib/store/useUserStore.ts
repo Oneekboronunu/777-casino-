@@ -30,7 +30,7 @@ interface UserStoreState {
 
   // Actions
   setUser: (user: UserProfile | null) => void;
-  updateBalance: (delta: number) => void;
+  updateBalance: (delta: number, bonusDelta?: number) => void;
   setExactBalance: (balance: number, bonusBalance?: number) => void;
   setIsDepositModalOpen: (open: boolean) => void;
   setIsWithdrawModalOpen: (open: boolean) => void;
@@ -90,6 +90,8 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
     const saved = loadSavedProfileData();
     const mergedUser: UserProfile = {
       ...user,
+      balance: saved.balance !== undefined ? saved.balance : user.balance,
+      bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : user.bonusBalance,
       coins: saved.coins !== undefined ? saved.coins : user.coins ?? 1500,
       equippedFrame: saved.equippedFrame || user.equippedFrame || "frame-classic",
       equippedGameSkin: saved.equippedGameSkin || user.equippedGameSkin || "skin-felt-green",
@@ -99,28 +101,34 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
     set({ user: mergedUser });
   },
 
-  updateBalance: (delta) => {
+  updateBalance: (delta, bonusDelta = 0) => {
     const { user } = get();
     if (user) {
+      const nextBalance = Math.max(0, user.balance + delta);
+      const nextBonus = Math.max(0, (user.bonusBalance ?? 0) + bonusDelta);
       set({
         user: {
           ...user,
-          balance: Math.max(0, user.balance + delta),
+          balance: nextBalance,
+          bonusBalance: nextBonus,
         },
       });
+      saveProfileData({ balance: nextBalance, bonusBalance: nextBonus });
     }
   },
 
   setExactBalance: (balance, bonusBalance) => {
     const { user } = get();
     if (user) {
+      const nextBonus = bonusBalance !== undefined ? bonusBalance : user.bonusBalance;
       set({
         user: {
           ...user,
           balance,
-          bonusBalance: bonusBalance !== undefined ? bonusBalance : user.bonusBalance,
+          bonusBalance: nextBonus,
         },
       });
+      saveProfileData({ balance, bonusBalance: nextBonus });
     }
   },
 
@@ -153,6 +161,8 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
           const saved = loadSavedProfileData();
           const mergedUser: UserProfile = {
             ...data.user,
+            balance: saved.balance !== undefined ? saved.balance : data.user.balance,
+            bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : data.user.bonusBalance,
             coins: saved.coins !== undefined ? saved.coins : (data.user.coins ?? 1500),
             equippedFrame: saved.equippedFrame || data.user.equippedFrame || "frame-classic",
             equippedGameSkin: saved.equippedGameSkin || data.user.equippedGameSkin || "skin-felt-green",
