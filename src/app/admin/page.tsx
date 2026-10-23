@@ -28,10 +28,19 @@ import {
   ChevronRight,
   Eye,
   SlidersHorizontal,
+  Copy,
+  Image as ImageIcon,
+  Check,
+  X,
+  Search,
+  CheckCircle2,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import { useAdminConfigStore, GameRigSettings } from "@/lib/store/useAdminConfigStore";
 import sound from "@/lib/sound";
+import CoinIcon from "@/components/common/CoinIcon";
 
 export default function AdminPage() {
   const { user, showNotification } = useUserStore();
@@ -40,12 +49,24 @@ export default function AdminPage() {
   // Admin Access Gate
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"GAMES_RIG" | "WORLDWIDE" | "PLAYERS" | "SPORTS" | "TRANSACTIONS">("GAMES_RIG");
+  const [activeTab, setActiveTab] = useState<
+    "DEPOSITS" | "PLAYERS" | "GAMES_RIG" | "WORLDWIDE" | "SPORTS" | "TRANSACTIONS"
+  >("DEPOSITS");
 
   const [metrics, setMetrics] = useState<any>(null);
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [depositRequests, setDepositRequests] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Filters & Modal States
+  const [depositFilter, setDepositFilter] = useState<"ALL" | "PENDING" | "COMPLETED" | "REJECTED">("ALL");
+  const [playerSearch, setPlayerSearch] = useState<string>("");
+  const [selectedScreenshotDeposit, setSelectedScreenshotDeposit] = useState<any | null>(null);
+
+  // Custom Credit Inputs
+  const [customAmounts, setCustomAmounts] = useState<{ [id: string]: string }>({});
+  const [customCoins, setCustomCoins] = useState<{ [id: string]: string }>({});
 
   // Score editing modal state
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
@@ -55,7 +76,6 @@ export default function AdminPage() {
   const [liveSummaryInput, setLiveSummaryInput] = useState<string>("");
 
   useEffect(() => {
-    // Check if user is already admin or if PIN was unlocked in session
     if (user?.role === "ADMIN" || sessionStorage.getItem("admin_unlocked") === "true") {
       setIsAuthenticated(true);
     }
@@ -83,6 +103,7 @@ export default function AdminPage() {
       if (res.ok) {
         setMetrics(data.metrics);
         setUsersList(data.users || []);
+        setDepositRequests(data.depositRequests || []);
       }
     } catch {
       // ignore
@@ -103,51 +124,70 @@ export default function AdminPage() {
     }
   };
 
-  const handleApproveUser = async (userId: string) => {
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    sound.playChipClick();
+    showNotification(`${label} কপি করা হয়েছে: ${text}`, "SUCCESS");
+  };
+
+  // Deposit Approval (Cash or Coins)
+  const handleApproveDeposit = async (dep: any, creditType: "CASH" | "COINS", customVal?: number) => {
     try {
+      const creditCash = creditType === "CASH" ? (customVal !== undefined ? customVal : dep.amount) : 0;
+      const creditCoins = creditType === "COINS" ? (customVal !== undefined ? customVal : dep.amount * 10) : 0;
+
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
-          action: "APPROVE_USER",
+          action: "APPROVE_DEPOSIT",
+          depositId: dep.id,
+          userId: dep.userId,
+          amount: creditCash,
+          coins: creditCoins,
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
         sound.playWin();
-        showNotification(data.message || "User approved! Bonus credited.", "SUCCESS");
+        showNotification(
+          data.message || `ডিপোজিট সফলভাবে অনুমোদিত! ৳${creditCash.toLocaleString()} যোগ হয়েছে।`,
+          "SUCCESS"
+        );
         fetchAdminData();
+        if (selectedScreenshotDeposit?.id === dep.id) {
+          setSelectedScreenshotDeposit(null);
+        }
       } else {
-        showNotification(data.error || "Approval failed", "ERROR");
+        showNotification(data.error || "অনুমোদন ব্যর্থ হয়েছে", "ERROR");
       }
     } catch {
-      showNotification("Error approving user", "ERROR");
+      showNotification("ডিপোজিট অনুমোদনে ত্রুটি হয়েছে", "ERROR");
     }
   };
 
-  const handleRejectUser = async (userId: string) => {
+  const handleRejectDeposit = async (depId: string) => {
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
-          action: "REJECT_USER",
+          action: "REJECT_DEPOSIT",
+          depositId: depId,
         }),
       });
 
-      const data = await res.json();
       if (res.ok) {
         sound.playCrash();
-        showNotification(data.message || "User application rejected", "INFO");
+        showNotification("ডিপোজিট আবেদন বাতিল করা হয়েছে", "INFO");
         fetchAdminData();
-      } else {
-        showNotification(data.error || "Rejection failed", "ERROR");
+        if (selectedScreenshotDeposit?.id === depId) {
+          setSelectedScreenshotDeposit(null);
+        }
       }
     } catch {
-      showNotification("Error rejecting user", "ERROR");
+      showNotification("Error rejecting deposit", "ERROR");
     }
   };
 
@@ -166,13 +206,38 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok) {
         sound.playWin();
-        showNotification(`Balance adjusted by ${amount >= 0 ? "+" : ""}৳${amount.toLocaleString()}`, "SUCCESS");
+        showNotification(`ক্যাশ ব্যালেন্স আপডেট হয়েছে: ${amount >= 0 ? "+" : ""}৳${amount.toLocaleString()}`, "SUCCESS");
         fetchAdminData();
       } else {
         showNotification(data.error || "Adjustment failed", "ERROR");
       }
     } catch {
       showNotification("Error adjusting balance", "ERROR");
+    }
+  };
+
+  const handleAdjustCoins = async (userId: string, coins: number) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: "ADJUST_COINS",
+          coins,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        sound.playWin();
+        showNotification(`কয়েন আপডেট হয়েছে: ${coins >= 0 ? "+" : ""}${coins.toLocaleString()} Coins`, "SUCCESS");
+        fetchAdminData();
+      } else {
+        showNotification(data.error || "Coins adjustment failed", "ERROR");
+      }
+    } catch {
+      showNotification("Error adjusting coins", "ERROR");
     }
   };
 
@@ -203,6 +268,26 @@ export default function AdminPage() {
     }
   };
 
+  // Filtered deposits
+  const filteredDeposits = depositRequests.filter((d) => {
+    if (depositFilter === "ALL") return true;
+    return d.status === depositFilter;
+  });
+
+  const pendingDepositsCount = depositRequests.filter((d) => d.status === "PENDING").length;
+
+  // Filtered players
+  const filteredUsers = usersList.filter((u) => {
+    if (!playerSearch.trim()) return true;
+    const query = playerSearch.toLowerCase();
+    return (
+      u.name?.toLowerCase().includes(query) ||
+      u.phone?.toLowerCase().includes(query) ||
+      u.email?.toLowerCase().includes(query) ||
+      u.id?.toLowerCase().includes(query)
+    );
+  });
+
   // Worldwide Calculations
   const baseTurnover = (metrics?.totalTurnover || 18450000) * (settings.globalWorldwideTurnoverMultiplier || 1.0);
   const baseGGR = baseTurnover * ((settings.globalHouseEdgePercent || 8) / 100);
@@ -218,7 +303,7 @@ export default function AdminPage() {
           <div>
             <h2 className="text-2xl font-black text-white tracking-wide">MASTER ADMIN ACCESS</h2>
             <p className="text-xs text-gray-400 mt-1">
-              777 Enterprise Casino & Game Algorithm Suite
+              777 Enterprise Casino & Deposit Controller
             </p>
           </div>
 
@@ -252,8 +337,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* 1. Header & Live Indicator */}
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 text-white font-sans">
+      {/* 1. Header Bar */}
       <div className="bg-[#111827] border border-[#23334E] rounded-3xl p-6 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#BA2649] to-[#8C1430] flex items-center justify-center shadow-lg border border-[#FFDE59]/30">
@@ -262,14 +347,14 @@ export default function AdminPage() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-black text-white tracking-wide">
-                777 GOD-MODE ADMIN SUITE
+                777 MASTER ADMIN CONTROL
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] text-[10px] font-bold animate-pulse">
-                ● LIVE ENGINE
+                ● LIVE
               </span>
             </div>
             <p className="text-xs text-gray-400">
-              Real-time Game Algorithm Rigging, Worldwide Financials & Sportsbook Management
+              Agent Number: <span className="font-mono font-bold text-[#FFDE59]">01780625295</span> (bKash / Nagad / Rocket)
             </p>
           </div>
         </div>
@@ -285,18 +370,7 @@ export default function AdminPage() {
             className="px-4 py-2 bg-[#151F32] hover:bg-[#1C283F] border border-[#23334E] text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition"
           >
             <RefreshCw className="w-3.5 h-3.5 text-[#FFDE59]" />
-            <span>Sync DB</span>
-          </button>
-          <button
-            onClick={() => {
-              resetToDefaults();
-              sound.playWin();
-              showNotification("All game rig settings reset to factory defaults", "INFO");
-            }}
-            className="px-4 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Rig</span>
+            <span>Sync Live DB</span>
           </button>
           <Link
             href="/"
@@ -307,75 +381,86 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* 2. Worldwide Real-Time Financials Bar */}
+      {/* 2. Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Worldwide Total Wagers */}
-        <div className="p-5 bg-gradient-to-br from-[#131b2c] to-[#0d1320] border border-[#23334E] rounded-2xl space-y-1.5 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <span className="flex items-center space-x-1.5 font-bold uppercase text-[11px] tracking-wider text-gray-300">
-              <Globe className="w-3.5 h-3.5 text-[#FFDE59]" />
-              <span>Worldwide Turnover</span>
+        {/* Pending Deposits Card */}
+        <div
+          onClick={() => setActiveTab("DEPOSITS")}
+          className={`p-5 rounded-2xl border cursor-pointer transition shadow-lg ${
+            pendingDepositsCount > 0
+              ? "bg-gradient-to-br from-[#3D1426] to-[#1C0A14] border-[#FFDE59] shadow-[0_0_15px_rgba(255,222,89,0.25)]"
+              : "bg-[#111827] border-[#23334E]"
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <span className="font-bold uppercase text-[11px] tracking-wider text-amber-300 flex items-center space-x-1.5">
+              <span>💰</span>
+              <span>Pending Deposits</span>
             </span>
-            <span className="text-[10px] text-[#10B981] font-mono">Live Ticker</span>
+            {pendingDepositsCount > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+            )}
+          </div>
+          <div className="text-3xl font-black font-mono text-[#FFDE59]">
+            {pendingDepositsCount} Requests
+          </div>
+          <div className="text-[11px] text-gray-400 mt-1">
+            Click to review TrxID & Screenshot
+          </div>
+        </div>
+
+        {/* Total Users */}
+        <div
+          onClick={() => setActiveTab("PLAYERS")}
+          className="p-5 bg-gradient-to-br from-[#131b2c] to-[#0d1320] border border-[#23334E] rounded-2xl space-y-1 shadow-lg cursor-pointer hover:border-gray-500 transition"
+        >
+          <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <span className="font-bold uppercase text-[11px] tracking-wider text-gray-300 flex items-center space-x-1.5">
+              <Users className="w-3.5 h-3.5 text-blue-400" />
+              <span>Registered Players</span>
+            </span>
+            <span className="text-[10px] text-emerald-400 font-bold">Auto-Saved</span>
+          </div>
+          <div className="text-3xl font-black font-mono text-white">
+            {usersList.length} Players
+          </div>
+          <div className="text-[11px] text-gray-400">
+            Instant balance & coin adjustment
+          </div>
+        </div>
+
+        {/* Turnover */}
+        <div className="p-5 bg-[#111827] border border-[#23334E] rounded-2xl space-y-1 shadow-lg">
+          <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <span className="font-bold uppercase text-[11px] tracking-wider text-gray-300 flex items-center space-x-1.5">
+              <Globe className="w-3.5 h-3.5 text-[#FFDE59]" />
+              <span>Turnover Volume</span>
+            </span>
           </div>
           <div className="text-2xl font-black font-mono text-[#FFDE59]">
             ৳{Math.round(baseTurnover).toLocaleString()}
           </div>
           <div className="text-[11px] text-gray-400">
-            ≈ ${worldwideUSD.toLocaleString()} USD across all nodes
+            Live betting & casino action
           </div>
         </div>
 
-        {/* Total Platform GGR */}
-        <div className="p-5 bg-gradient-to-br from-[#1a1420] to-[#0d1320] border border-[#23334E] rounded-2xl space-y-1.5 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <span className="flex items-center space-x-1.5 font-bold uppercase text-[11px] tracking-wider text-gray-300">
-              <TrendingUp className="w-3.5 h-3.5 text-[#10B981]" />
-              <span>House Profit (GGR)</span>
-            </span>
-            <span className="text-[10px] text-[#FFDE59] font-bold bg-[#FFDE59]/10 px-2 py-0.5 rounded">
-              {settings.globalHouseEdgePercent}% Margin
-            </span>
+        {/* Agent Info */}
+        <div className="p-5 bg-[#1C0F17] border border-[#BA2649]/40 rounded-2xl space-y-1 shadow-lg">
+          <div className="text-xs text-amber-200/90 font-bold uppercase tracking-wider mb-1">
+            Official Agent (All-in-One)
           </div>
-          <div className="text-2xl font-black font-mono text-[#10B981]">
-            ৳{Math.round(baseGGR).toLocaleString()}
+          <div className="text-xl font-black font-mono text-[#FFDE59] tracking-wider flex items-center justify-between">
+            <span>01780625295</span>
+            <button
+              onClick={() => handleCopy("01780625295", "Agent Number")}
+              className="p-1.5 bg-[#BA2649] text-white rounded-lg text-[10px] uppercase font-black"
+            >
+              Copy
+            </button>
           </div>
-          <div className="text-[11px] text-gray-400">
-            Net Casino & Sportsbook yield
-          </div>
-        </div>
-
-        {/* Total Real Deposits */}
-        <div className="p-5 bg-gradient-to-br from-[#121c25] to-[#0d1320] border border-[#23334E] rounded-2xl space-y-1.5 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <span className="flex items-center space-x-1.5 font-bold uppercase text-[11px] tracking-wider text-gray-300">
-              <ArrowDownLeft className="w-3.5 h-3.5 text-[#6DB1FF]" />
-              <span>Total Deposits</span>
-            </span>
-            <span className="text-[10px] text-[#10B981] font-bold">100% Instant</span>
-          </div>
-          <div className="text-2xl font-black font-mono text-white">
-            ৳{(metrics?.totalDeposits || 2450000).toLocaleString()}
-          </div>
-          <div className="text-[11px] text-gray-400">
-            bKash, Nagad, Rocket & Bank
-          </div>
-        </div>
-
-        {/* Global Active Players */}
-        <div className="p-5 bg-gradient-to-br from-[#20151c] to-[#0d1320] border border-[#23334E] rounded-2xl space-y-1.5 shadow-lg">
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <span className="flex items-center space-x-1.5 font-bold uppercase text-[11px] tracking-wider text-gray-300">
-              <Users className="w-3.5 h-3.5 text-[#FF65A5]" />
-              <span>Active Players Online</span>
-            </span>
-            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
-          </div>
-          <div className="text-2xl font-black font-mono text-[#FF65A5]">
-            {(settings.worldwideActivePlayersCount || 1842).toLocaleString()} Active
-          </div>
-          <div className="text-[11px] text-gray-400">
-            {metrics?.userCount || 4} Registered in DB
+          <div className="text-[10px] text-gray-300">
+            bKash, Rocket, Nagad সব এই নাম্বারে
           </div>
         </div>
       </div>
@@ -383,11 +468,16 @@ export default function AdminPage() {
       {/* 3. Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[#23334E] pb-3">
         {[
-          { id: "GAMES_RIG", label: "🎮 Game Rig & Win Rates", desc: "Aviator, Carrom, Dice, Roulette, CoinFlip" },
-          { id: "WORLDWIDE", label: "🌍 Global Volume Controller", desc: "Turnover Multiplier & House Margin" },
-          { id: "PLAYERS", label: "👥 Player Ledger & User Rigging", desc: "Balances, VIP Tiers, Streak Overrides" },
-          { id: "SPORTS", label: "🏏 Sportsbook Score Editor", desc: "IPL, BPL & UCL Live Settlement" },
-          { id: "TRANSACTIONS", label: "💳 Financial Ledger", desc: "Recent Deposits & Withdrawals" },
+          {
+            id: "DEPOSITS",
+            label: `💰 Deposit Requests (${pendingDepositsCount} PENDING)`,
+            highlight: pendingDepositsCount > 0,
+          },
+          { id: "PLAYERS", label: "👥 Player Accounts & Balance" },
+          { id: "GAMES_RIG", label: "🎮 Game Rig & Win Rates" },
+          { id: "WORLDWIDE", label: "🌍 Global Volume Controller" },
+          { id: "SPORTS", label: "🏏 Sportsbook Score Editor" },
+          { id: "TRANSACTIONS", label: "💳 Financial Ledger" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -398,6 +488,8 @@ export default function AdminPage() {
             className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition flex items-center space-x-2 ${
               activeTab === tab.id
                 ? "bg-[#BA2649] text-white shadow-retro"
+                : tab.highlight
+                ? "bg-[#3D1426] text-[#FFDE59] border border-[#FFDE59]/50 animate-pulse"
                 : "bg-[#111827] text-gray-400 hover:text-white border border-[#23334E]"
             }`}
           >
@@ -406,7 +498,414 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {/* ==================== TAB 1: GAME RIG & ALGORITHM CONTROLLER ==================== */}
+      {/* ==================== TAB: DEPOSIT REQUESTS (USER SCREENSHOT & TRXID) ==================== */}
+      {activeTab === "DEPOSITS" && (
+        <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-5 shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#23334E]/60 pb-4">
+            <div>
+              <h3 className="text-lg font-black text-white uppercase tracking-wide flex items-center space-x-2">
+                <span>ডিপোজিট আবেদন ও স্ক্রিনশট ভেরিফিকেশন</span>
+                {pendingDepositsCount > 0 && (
+                  <span className="px-2.5 py-0.5 bg-[#BA2649] text-white text-[10px] font-black rounded-full">
+                    {pendingDepositsCount} New
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                প্লেয়ারদের পাঠানো TrxID এবং পেমেন্ট স্ক্রিনশট দেখে এক ক্লিকে একাউন্টে টাকা বা কয়েন যোগ করুন।
+              </p>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center space-x-1.5 bg-[#0B0F1A] p-1.5 rounded-2xl border border-[#23334E]">
+              {(["ALL", "PENDING", "COMPLETED", "REJECTED"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setDepositFilter(f)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    depositFilter === f
+                      ? "bg-[#BA2649] text-white shadow"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {f === "ALL" ? "All" : f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Deposit Requests Grid / List */}
+          {filteredDeposits.length === 0 ? (
+            <div className="py-12 text-center space-y-2">
+              <span className="text-3xl">📭</span>
+              <p className="text-xs text-gray-400 font-bold">কোন ডিপোজিট আবেদন পাওয়া যায়নি</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredDeposits.map((dep) => {
+                const isPending = dep.status === "PENDING";
+                const customCashVal = customAmounts[dep.id] ? parseFloat(customAmounts[dep.id]) : undefined;
+                const customCoinVal = customCoins[dep.id] ? parseInt(customCoins[dep.id], 10) : undefined;
+
+                return (
+                  <div
+                    key={dep.id}
+                    className={`p-4 rounded-2xl border transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 ${
+                      isPending
+                        ? "bg-[#180E16] border-[#FFDE59]/50 shadow-[0_0_15px_rgba(255,222,89,0.15)]"
+                        : "bg-[#111827] border-[#23334E]"
+                    }`}
+                  >
+                    {/* Left: Player info & Amount */}
+                    <div className="flex items-start space-x-3.5">
+                      {/* Screenshot Thumbnail */}
+                      {dep.screenshot ? (
+                        <div
+                          onClick={() => setSelectedScreenshotDeposit(dep)}
+                          className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-emerald-500/60 cursor-pointer hover:scale-105 transition shadow flex-shrink-0 group"
+                          title="Click to view full screenshot"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={dep.screenshot}
+                            alt="Payment Proof"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <Eye className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-[#0B0F1A] border border-[#23334E] flex flex-col items-center justify-center text-gray-500 flex-shrink-0 text-[10px]">
+                          <ImageIcon className="w-5 h-5 mb-0.5" />
+                          <span>No Image</span>
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-white text-sm">{dep.userName || "Player"}</span>
+                          <span className="px-2 py-0.5 bg-[#BA2649]/20 border border-[#BA2649]/40 text-[#FFDE59] text-[10px] font-black rounded uppercase">
+                            {dep.method}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-black rounded-full ${
+                              dep.status === "COMPLETED"
+                                ? "bg-emerald-900/60 text-emerald-300 border border-emerald-500/40"
+                                : dep.status === "REJECTED"
+                                ? "bg-red-900/60 text-red-300 border border-red-500/40"
+                                : "bg-yellow-900/60 text-yellow-300 border border-yellow-500/40 animate-pulse"
+                            }`}
+                          >
+                            {dep.status}
+                          </span>
+                        </div>
+
+                        {/* Phone Number with Copy */}
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-gray-400">Phone:</span>
+                          <span className="font-mono font-bold text-white">{dep.userPhone || dep.accountNumber}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(dep.userPhone || dep.accountNumber, "Phone Number")}
+                            className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-[#FFDE59] transition"
+                            title="Copy Phone Number"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Transaction ID with Copy */}
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-gray-400">TrxID:</span>
+                          <span className="font-mono font-black text-[#FFDE59] tracking-wider">{dep.txId}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(dep.txId, "Transaction ID")}
+                            className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-[#FFDE59] transition"
+                            title="Copy TrxID"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Middle: Amount */}
+                    <div className="p-3 bg-[#0B0F1A] border border-[#23334E] rounded-2xl text-center min-w-[130px]">
+                      <span className="text-[10px] text-gray-400 uppercase font-bold block">Sent Amount</span>
+                      <span className="text-xl font-mono font-black text-[#10B981]">
+                        ৳{dep.amount?.toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+                      {isPending ? (
+                        <>
+                          {/* Approve as Cash */}
+                          <button
+                            onClick={() => handleApproveDeposit(dep, "CASH", customCashVal)}
+                            className="px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition flex items-center justify-center space-x-1"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>
+                              {customCashVal !== undefined
+                                ? `Add ৳${customCashVal.toLocaleString()} Cash`
+                                : `Approve ৳${dep.amount.toLocaleString()} Cash`}
+                            </span>
+                          </button>
+
+                          {/* Approve as Coins */}
+                          <button
+                            onClick={() => handleApproveDeposit(dep, "COINS", customCoinVal)}
+                            className="px-3.5 py-2.5 bg-gradient-to-r from-[#FFDE59] to-amber-500 hover:brightness-105 text-black font-black text-xs uppercase tracking-wider rounded-xl shadow transition flex items-center justify-center space-x-1"
+                          >
+                            <CoinIcon size="xs" />
+                            <span>
+                              {customCoinVal !== undefined
+                                ? `+${customCoinVal.toLocaleString()} Coins`
+                                : `+${(dep.amount * 10).toLocaleString()} Coins`}
+                            </span>
+                          </button>
+
+                          {/* Reject */}
+                          <button
+                            onClick={() => handleRejectDeposit(dep.id)}
+                            className="px-3 py-2 bg-red-950/40 hover:bg-red-900 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl transition"
+                          >
+                            ✕ Reject
+                          </button>
+                        </>
+                      ) : (
+                        <div className="text-xs text-gray-400 font-mono">
+                          {dep.status === "COMPLETED" ? (
+                            <span className="text-emerald-400 font-bold flex items-center space-x-1">
+                              <Check className="w-4 h-4" />
+                              <span>Approved & Credited</span>
+                            </span>
+                          ) : (
+                            <span className="text-red-400 font-bold flex items-center space-x-1">
+                              <X className="w-4 h-4" />
+                              <span>Rejected</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Full-Screen Screenshot Lightbox Modal */}
+      {selectedScreenshotDeposit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-150">
+          <div className="relative max-w-3xl w-full bg-[#111827] border-2 border-[#FFDE59] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h4 className="text-base font-black text-[#FFDE59]">
+                  পেমেন্ট স্ক্রিনশট যাচাই: {selectedScreenshotDeposit.userName} ({selectedScreenshotDeposit.method})
+                </h4>
+                <p className="text-xs text-gray-400 font-mono">
+                  Amount: ৳{selectedScreenshotDeposit.amount?.toLocaleString()} | TrxID: {selectedScreenshotDeposit.txId}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedScreenshotDeposit(null)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Image Preview Container */}
+            <div className="flex-1 overflow-auto flex items-center justify-center bg-black/50 rounded-2xl p-2 border border-white/5 min-h-[300px]">
+              {selectedScreenshotDeposit.screenshot ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selectedScreenshotDeposit.screenshot}
+                  alt="Full Payment Proof"
+                  className="max-h-[60vh] w-auto object-contain rounded-xl shadow-2xl"
+                />
+              ) : (
+                <div className="text-gray-500 text-xs">No screenshot available</div>
+              )}
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10">
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => handleCopy(selectedScreenshotDeposit.txId, "Transaction ID")}
+                  className="px-3 py-1.5 bg-[#151F32] hover:bg-[#1E2C47] text-white text-xs font-mono font-bold rounded-xl border border-white/10 flex items-center space-x-1"
+                >
+                  <Copy className="w-3.5 h-3.5 text-[#FFDE59]" />
+                  <span>Copy TrxID ({selectedScreenshotDeposit.txId})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(selectedScreenshotDeposit.userPhone, "Phone Number")}
+                  className="px-3 py-1.5 bg-[#151F32] hover:bg-[#1E2C47] text-white text-xs font-mono font-bold rounded-xl border border-white/10 flex items-center space-x-1"
+                >
+                  <Copy className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>Copy Phone</span>
+                </button>
+              </div>
+
+              {selectedScreenshotDeposit.status === "PENDING" && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleApproveDeposit(selectedScreenshotDeposit, "CASH")}
+                    className="px-4 py-2 bg-[#10B981] hover:bg-[#059669] text-black font-black text-xs uppercase rounded-xl shadow"
+                  >
+                    ✓ Approve Cash (+৳{selectedScreenshotDeposit.amount?.toLocaleString()})
+                  </button>
+                  <button
+                    onClick={() => handleApproveDeposit(selectedScreenshotDeposit, "COINS")}
+                    className="px-3 py-2 bg-[#FFDE59] hover:bg-yellow-400 text-black font-black text-xs uppercase rounded-xl shadow"
+                  >
+                    🪙 Approve Coins
+                  </button>
+                  <button
+                    onClick={() => handleRejectDeposit(selectedScreenshotDeposit.id)}
+                    className="px-3 py-2 bg-red-950 hover:bg-red-900 text-red-300 font-bold text-xs rounded-xl border border-red-500/40"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== TAB: PLAYERS & USERS LEDGER ==================== */}
+      {activeTab === "PLAYERS" && (
+        <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#23334E]/60 pb-3">
+            <div>
+              <h3 className="text-base font-black text-white uppercase tracking-wide">
+                User Accounts & Balance Management
+              </h3>
+              <p className="text-xs text-gray-400">
+                Newly registered users show up here immediately with phone, cash, and coin balances
+              </p>
+            </div>
+
+            {/* Search Box */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="নাম বা ফোন নাম্বার দিয়ে খুঁজুন..."
+                value={playerSearch}
+                onChange={(e) => setPlayerSearch(e.target.value)}
+                className="bg-[#0B0F1A] border border-[#23334E] focus:border-[#FFDE59] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-gray-500 outline-none w-64"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[11px] text-gray-400 uppercase bg-[#0B0F1A] border-b border-[#23334E]">
+                <tr>
+                  <th className="py-3 px-4">Player / Name</th>
+                  <th className="py-3 px-4">bKash / WhatsApp Phone</th>
+                  <th className="py-3 px-4">Cash Balance</th>
+                  <th className="py-3 px-4">Coins Balance</th>
+                  <th className="py-3 px-4">Coupon</th>
+                  <th className="py-3 px-4 text-center">Add Cash (৳)</th>
+                  <th className="py-3 px-4 text-center">Add Coins (🪙)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#23334E]/40">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-[#151F32]/50 transition">
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-white">{u.name}</div>
+                      <div className="text-[10px] text-gray-500 font-mono">{u.id}</div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#FFDE59]">
+                      <div className="flex items-center space-x-1.5">
+                        <span>{u.phone || "No Phone"}</span>
+                        {u.phone && (
+                          <button
+                            onClick={() => handleCopy(u.phone, "Phone Number")}
+                            className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition"
+                            title="Copy Phone"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#10B981] text-sm">
+                      ৳{(u.balance ?? 2000).toLocaleString()}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-amber-300">
+                      🪙 {(u.coins ?? 1500).toLocaleString()}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {u.couponCode ? (
+                        <span className="px-2 py-0.5 bg-purple-900/40 text-purple-300 border border-purple-500/30 rounded text-[10px] font-mono font-bold">
+                          {u.couponCode}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 text-[10px]">—</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center space-x-1">
+                        <button
+                          onClick={() => handleAdjustBalance(u.id, 1000)}
+                          className="px-2 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 text-[10px]"
+                        >
+                          +1k
+                        </button>
+                        <button
+                          onClick={() => handleAdjustBalance(u.id, 5000)}
+                          className="px-2 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 text-[10px]"
+                        >
+                          +5k
+                        </button>
+                        <button
+                          onClick={() => handleAdjustBalance(u.id, -1000)}
+                          className="px-1.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold rounded-lg border border-red-500/40 text-[10px]"
+                        >
+                          -1k
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center space-x-1">
+                        <button
+                          onClick={() => handleAdjustCoins(u.id, 5000)}
+                          className="px-2 py-1 bg-[#FFDE59]/20 hover:bg-[#FFDE59] text-[#FFDE59] hover:text-black font-bold rounded-lg border border-[#FFDE59]/40 text-[10px]"
+                        >
+                          +5k Coins
+                        </button>
+                        <button
+                          onClick={() => handleAdjustCoins(u.id, 20000)}
+                          className="px-2 py-1 bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-white font-bold rounded-lg border border-purple-500/40 text-[10px]"
+                        >
+                          +20k Coins
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== TAB: GAME RIG & ALGORITHM CONTROLLER ==================== */}
       {activeTab === "GAMES_RIG" && (
         <div className="space-y-6">
           <div className="p-4 bg-[#BA2649]/10 border border-[#BA2649]/30 rounded-2xl flex items-center justify-between">
@@ -441,357 +940,90 @@ export default function AdminPage() {
                 </span>
               </div>
 
-              {/* Mode Selector */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Flight Algorithm Mode
-                </label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {[
-                    { id: "HOUSE_PROFIT", label: "House Profit (Rigged)", desc: "Frequent crashes < 1.20x" },
-                    { id: "FAIR", label: "Natural Fair (RNG)", desc: "Standard random distribution" },
-                    { id: "FORCE_NEXT_CRASH", label: "Force Exact Multiplier", desc: "Custom Target Crash Point" },
-                    { id: "MEGA_WIN_EVENT", label: "Mega Flight Event", desc: "Allow 50x - 150x skyrocket" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        updateSettings({ aviatorMode: m.id as any });
-                        sound.playChipClick();
-                        showNotification(`Aviator mode set to ${m.label}`, "SUCCESS");
-                      }}
-                      className={`p-3 rounded-xl border text-left transition ${
-                        settings.aviatorMode === m.id
-                          ? "border-[#BA2649] bg-[#BA2649]/20 text-white font-bold"
-                          : "border-[#23334E] bg-[#151F32] text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      <div className="text-xs font-bold">{m.label}</div>
-                      <div className="text-[10px] text-gray-400">{m.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Instant Crash Under 1.20x Chance Slider */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">Instant Crash Chance (&lt; 1.20x)</span>
-                  <span className="font-mono font-bold text-[#FFDE59] text-sm">
-                    {settings.aviatorHouseCrashUnder120Chance}%
-                  </span>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-300 font-bold">House Edge Rig</span>
+                  <span className="text-red-400 font-mono font-black">{settings.globalHouseEdgePercent}%</span>
                 </div>
                 <input
                   type="range"
-                  min={5}
-                  max={80}
-                  step={5}
-                  value={settings.aviatorHouseCrashUnder120Chance}
-                  onChange={(e) => updateSettings({ aviatorHouseCrashUnder120Chance: Number(e.target.value) })}
-                  className="w-full accent-[#BA2649] cursor-pointer"
+                  min={1}
+                  max={25}
+                  value={settings.globalHouseEdgePercent}
+                  onChange={(e) =>
+                    updateSettings({ globalHouseEdgePercent: Number(e.target.value) })
+                  }
+                  className="w-full accent-red-500 cursor-pointer"
                 />
-                <div className="flex justify-between text-[10px] text-gray-500">
-                  <span>5% (Gentle)</span>
-                  <span>40% (High Profit)</span>
-                  <span>80% (Hard Rig)</span>
-                </div>
               </div>
 
-              {/* Forced Next Multiplier Input */}
-              {settings.aviatorMode === "FORCE_NEXT_CRASH" && (
-                <div className="p-3 bg-[#BA2649]/15 border border-[#BA2649]/40 rounded-xl space-y-2">
-                  <label className="text-xs font-bold text-white block">
-                    Target Exact Next Multiplier (e.g. 1.05 or 10.00):
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="number"
-                      step={0.01}
-                      min={1.01}
-                      max={1000}
-                      value={settings.aviatorForceNextMultiplier}
-                      onChange={(e) => updateSettings({ aviatorForceNextMultiplier: parseFloat(e.target.value) || 1.05 })}
-                      className="w-full bg-[#0B0F1A] border border-[#23334E] rounded-xl px-3 py-2 text-sm text-white font-mono font-bold outline-none"
-                    />
-                    <button
-                      onClick={() => showNotification(`Forced Next Crash set to ${settings.aviatorForceNextMultiplier}x`, "SUCCESS")}
-                      className="px-4 py-2 bg-[#BA2649] text-white font-bold text-xs rounded-xl"
-                    >
-                      Set
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2. EUROPEAN ROULETTE CONTROLLER */}
-            <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
-                <div className="flex items-center space-x-2">
-                  <RotateCcw className="w-5 h-5 text-[#FFDE59]" />
-                  <h3 className="text-base font-black text-white uppercase tracking-wide">
-                    Roulette 3D Controller
-                  </h3>
-                </div>
-                <span className="text-xs font-bold text-[#FFDE59] bg-[#FFDE59]/10 px-2 py-0.5 rounded border border-[#FFDE59]/30">
-                  Wheel Physics & Magnet
-                </span>
-              </div>
-
-              {/* Magnet Ball Toggle */}
-              <div className="flex items-center justify-between p-3.5 bg-[#151F32] border border-[#23334E] rounded-xl">
-                <div>
-                  <div className="text-xs font-bold text-white">Magnet Ball Diversion</div>
-                  <div className="text-[11px] text-gray-400">
-                    Deflects ball away from high-stake player chips into empty numbers
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    updateSettings({ rouletteMagnetMode: !settings.rouletteMagnetMode });
-                    sound.playChipClick();
-                  }}
-                  className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition ${
-                    settings.rouletteMagnetMode
-                      ? "bg-[#10B981] text-black"
-                      : "bg-[#23334E] text-gray-400"
-                  }`}
-                >
-                  {settings.rouletteMagnetMode ? "ENABLED" : "DISABLED"}
-                </button>
-              </div>
-
-              {/* House Advantage Bias */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">House Deflection Bias</span>
-                  <span className="font-mono font-bold text-[#FFDE59] text-sm">
-                    {settings.rouletteHouseAdvantageBias}%
-                  </span>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-300 font-bold">Early Crash Probability (&lt; 1.20x)</span>
+                  <span className="text-red-400 font-mono font-black">{settings.aviatorHouseCrashUnder120Chance}%</span>
                 </div>
                 <input
                   type="range"
                   min={0}
                   max={60}
-                  step={5}
-                  value={settings.rouletteHouseAdvantageBias}
-                  onChange={(e) => updateSettings({ rouletteHouseAdvantageBias: Number(e.target.value) })}
-                  className="w-full accent-[#BA2649] cursor-pointer"
+                  value={settings.aviatorHouseCrashUnder120Chance}
+                  onChange={(e) =>
+                    updateSettings({ aviatorHouseCrashUnder120Chance: Number(e.target.value) })
+                  }
+                  className="w-full accent-red-500 cursor-pointer"
                 />
-                <div className="flex justify-between text-[10px] text-gray-500">
-                  <span>0% (Pure Random)</span>
-                  <span>30% (Recommended)</span>
-                  <span>60% (Max House Cut)</span>
+              </div>
+            </div>
+
+            {/* 2. ROULETTE 3D CONTROLLER */}
+            <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-5 shadow-xl">
+              <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-5 h-5 text-green-500" />
+                  <h3 className="text-base font-black text-white uppercase tracking-wide">
+                    European Roulette Rig
+                  </h3>
                 </div>
+                <span className="text-xs font-bold text-green-400 bg-green-950/40 px-2 py-0.5 rounded border border-green-500/30">
+                  Physics Deviation
+                </span>
               </div>
 
-              {/* Green 0 Zero Boost */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">Green Zero (0) Hit Probability Boost</span>
-                  <span className="font-mono font-bold text-[#10B981] text-sm">
-                    +{settings.rouletteZeroFrequencyBoost}%
-                  </span>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-300 font-bold">Green Zero (0) Land Chance</span>
+                  <span className="text-green-400 font-mono font-black">{settings.rouletteZeroFrequencyBoost}%</span>
                 </div>
                 <input
                   type="range"
-                  min={0}
+                  min={1}
                   max={30}
-                  step={2}
                   value={settings.rouletteZeroFrequencyBoost}
-                  onChange={(e) => updateSettings({ rouletteZeroFrequencyBoost: Number(e.target.value) })}
-                  className="w-full accent-[#10B981] cursor-pointer"
+                  onChange={(e) =>
+                    updateSettings({ rouletteZeroFrequencyBoost: Number(e.target.value) })
+                  }
+                  className="w-full accent-green-500 cursor-pointer"
                 />
-              </div>
-            </div>
-
-            {/* 3. PROVABLY FAIR DICE CONTROLLER */}
-            <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
-                <div className="flex items-center space-x-2">
-                  <Activity className="w-5 h-5 text-[#10B981]" />
-                  <h3 className="text-base font-black text-white uppercase tracking-wide">
-                    Dice 0-100 Algorithm Controller
-                  </h3>
-                </div>
-                <span className="text-xs font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/30">
-                  Streak & Margin Rig
-                </span>
-              </div>
-
-              {/* Max Consecutive Win Streak Limiter */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">Max Allowed Consecutive Win Streak</span>
-                  <span className="font-mono font-bold text-red-400 text-sm">
-                    Max {settings.diceMaxConsecutiveWins} Wins
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={8}
-                  step={1}
-                  value={settings.diceMaxConsecutiveWins}
-                  onChange={(e) => updateSettings({ diceMaxConsecutiveWins: Number(e.target.value) })}
-                  className="w-full accent-[#BA2649] cursor-pointer"
-                />
-                <div className="text-[10px] text-gray-400">
-                  Player automatically loses on roll #{settings.diceMaxConsecutiveWins + 1} to prevent martingale abuse.
-                </div>
-              </div>
-
-              {/* House Win Bias Offset */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">House Edge Bias Offset</span>
-                  <span className="font-mono font-bold text-[#FFDE59] text-sm">
-                    +{settings.diceHouseEdgeOffset}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={20}
-                  step={1}
-                  value={settings.diceHouseEdgeOffset}
-                  onChange={(e) => updateSettings({ diceHouseEdgeOffset: Number(e.target.value) })}
-                  className="w-full accent-[#BA2649] cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* 4. COIN FLIP STREAK CONTROLLER */}
-            <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
-                <div className="flex items-center space-x-2">
-                  <Coins className="w-5 h-5 text-[#FFDE59]" />
-                  <h3 className="text-base font-black text-white uppercase tracking-wide">
-                    Coin Flip Streak Controller
-                  </h3>
-                </div>
-                <span className="text-xs font-bold text-[#FFDE59] bg-[#FFDE59]/10 px-2 py-0.5 rounded border border-[#FFDE59]/30">
-                  Multi-Streak Control
-                </span>
-              </div>
-
-              {/* Force Outcome */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Flip Outcome Mode
-                </label>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  {[
-                    { id: "FAIR", label: "Natural (50/50)" },
-                    { id: "FORCE_WIN", label: "Force Win (100%)" },
-                    { id: "FORCE_LOSS", label: "Force Loss (0%)" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        updateSettings({ coinFlipForceOutcome: m.id as any });
-                        sound.playChipClick();
-                        showNotification(`Coin Flip mode: ${m.label}`, "SUCCESS");
-                      }}
-                      className={`p-2.5 rounded-xl border text-center font-bold transition ${
-                        settings.coinFlipForceOutcome === m.id
-                          ? "border-[#BA2649] bg-[#BA2649] text-white"
-                          : "border-[#23334E] bg-[#151F32] text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Max Streak */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-300">Max Winning Streak Limit</span>
-                  <span className="font-mono font-bold text-red-400 text-sm">
-                    {settings.coinFlipMaxStreak} Flips Max
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={6}
-                  step={1}
-                  value={settings.coinFlipMaxStreak}
-                  onChange={(e) => updateSettings({ coinFlipMaxStreak: Number(e.target.value) })}
-                  className="w-full accent-[#BA2649] cursor-pointer"
-                />
-                <div className="text-[10px] text-gray-400">
-                  Caps exponential multiplier scaling (prevents huge cashouts).
-                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 2: WORLDWIDE VOLUME CONTROLLER ==================== */}
+      {/* ==================== TAB: WORLDWIDE CONTROLLER ==================== */}
       {activeTab === "WORLDWIDE" && (
-        <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-6 shadow-xl max-w-3xl">
-          <div className="border-b border-[#23334E]/60 pb-3">
-            <h3 className="text-base font-black text-white uppercase tracking-wide flex items-center space-x-2">
-              <Globe className="w-5 h-5 text-[#FFDE59]" />
-              <span>Worldwide Financial Metric Scaling</span>
+        <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-6 shadow-xl">
+          <div className="border-b border-[#23334E]/60 pb-4">
+            <h3 className="text-base font-black text-white uppercase tracking-wide">
+              Global Platform Turnover & Online Multiplier
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Control the global platform scale, simulated turnover multipliers, and worldwide active player tickers.
-            </p>
+            <p className="text-xs text-gray-400">Control visual public tickers displayed across leaderboards</p>
           </div>
 
-          {/* Global House Edge Percent */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-gray-300">Target Global House Margin (GGR %)</span>
-              <span className="font-mono font-bold text-[#10B981] text-base">
-                {settings.globalHouseEdgePercent}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min={3}
-              max={35}
-              step={1}
-              value={settings.globalHouseEdgePercent}
-              onChange={(e) => updateSettings({ globalHouseEdgePercent: Number(e.target.value) })}
-              className="w-full accent-[#10B981] cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] text-gray-500">
-              <span>3% (Player Friendly)</span>
-              <span>10% (Industry Standard)</span>
-              <span>35% (Aggressive Profit)</span>
-            </div>
-          </div>
-
-          {/* Turnover Scaling Multiplier */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-gray-300">Worldwide Turnover Multiplier</span>
-              <span className="font-mono font-bold text-[#FFDE59] text-base">
-                {settings.globalWorldwideTurnoverMultiplier}x
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0.5}
-              max={10.0}
-              step={0.5}
-              value={settings.globalWorldwideTurnoverMultiplier}
-              onChange={(e) => updateSettings({ globalWorldwideTurnoverMultiplier: Number(e.target.value) })}
-              className="w-full accent-[#BA2649] cursor-pointer"
-            />
-          </div>
-
-          {/* Active Online Players Counter */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-gray-300">Global Online Players Counter (Simulated Feed)</span>
-              <span className="font-mono font-bold text-[#FF65A5] text-base">
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-gray-300 font-bold">Active Online Player Count Ticker</span>
+              <span className="text-[#FF65A5] font-mono font-black">
                 {settings.worldwideActivePlayersCount} Players
               </span>
             </div>
@@ -808,138 +1040,14 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ==================== TAB 3: PLAYERS & INDIVIDUAL RIGGING ==================== */}
-      {activeTab === "PLAYERS" && (
-        <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
-            <div>
-              <h3 className="text-base font-black text-white uppercase tracking-wide">
-                User Accounts & Balance Adjustment
-              </h3>
-              <p className="text-xs text-gray-400">Instant manual credit/debit & targeted luck overrides</p>
-            </div>
-            <span className="text-xs font-bold text-gray-300 bg-[#151F32] px-3 py-1 rounded-lg border border-[#23334E]">
-              {usersList.length} Accounts in Database
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-[11px] text-gray-400 uppercase bg-[#0B0F1A] border-b border-[#23334E]">
-                <tr>
-                  <th className="py-3 px-4">User / Email</th>
-                  <th className="py-3 px-4">Role / Verification</th>
-                  <th className="py-3 px-4">Real Balance</th>
-                  <th className="py-3 px-4">Bonus Balance</th>
-                  <th className="py-3 px-4 text-center">Account Action</th>
-                  <th className="py-3 px-4 text-center">Adjust Balance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#23334E]/40">
-                {usersList.map((u) => {
-                  const isPending = u.isVerified === false && u.role !== "ADMIN";
-                  return (
-                    <tr key={u.id} className={`transition ${isPending ? "bg-[#F59E0B]/10 hover:bg-[#F59E0B]/15" : "hover:bg-[#151F32]/50"}`}>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-white flex items-center space-x-1.5">
-                          {isPending && <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping" />}
-                          <span>{u.name}</span>
-                        </div>
-                        <div className="text-[11px] font-mono text-gray-400">{u.email}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-1">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            u.role === "ADMIN" ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-blue-500/20 text-blue-300"
-                          }`}>
-                            {u.role}
-                          </span>
-                          <div>
-                            {isPending ? (
-                              <span className="px-2 py-0.5 rounded text-[9px] font-black bg-[#F59E0B]/20 text-[#FFDE59] border border-[#F59E0B]/40 animate-pulse inline-block">
-                                ⏳ PENDING APPROVAL
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded text-[9px] font-black bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 inline-block">
-                                ✓ VERIFIED ACTIVE
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#10B981] text-sm">
-                        ৳{u.balance?.toLocaleString()}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#FFDE59]">
-                        ৳{u.bonusBalance?.toLocaleString() || 0}
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        {isPending ? (
-                          <div className="flex items-center justify-center space-x-1.5">
-                            <button
-                              onClick={() => handleApproveUser(u.id)}
-                              className="px-3 py-1.5 bg-[#10B981] hover:bg-[#059669] text-black font-black text-xs rounded-xl shadow-md transition"
-                            >
-                              ✓ Approve (+৳2k)
-                            </button>
-                            <button
-                              onClick={() => handleRejectUser(u.id)}
-                              className="px-2 py-1.5 bg-red-950/40 hover:bg-red-900 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl transition"
-                            >
-                              ✕ Reject
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-gray-500 font-bold">Approved</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center justify-center space-x-1.5">
-                          <button
-                            onClick={() => handleAdjustBalance(u.id, 1000)}
-                            className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
-                          >
-                            +1k
-                          </button>
-                          <button
-                            onClick={() => handleAdjustBalance(u.id, 5000)}
-                            className="px-2.5 py-1 bg-[#10B981]/20 hover:bg-[#10B981] text-[#10B981] hover:text-black font-bold rounded-lg border border-[#10B981]/40 transition text-[11px]"
-                          >
-                            +5k
-                          </button>
-                          <button
-                            onClick={() => handleAdjustBalance(u.id, 25000)}
-                            className="px-2.5 py-1 bg-[#FFDE59]/20 hover:bg-[#FFDE59] text-[#FFDE59] hover:text-black font-bold rounded-lg border border-[#FFDE59]/40 transition text-[11px]"
-                          >
-                            +25k
-                          </button>
-                          <button
-                            onClick={() => handleAdjustBalance(u.id, -1000)}
-                            className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold rounded-lg border border-red-500/40 transition text-[11px]"
-                          >
-                            -1k
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB 4: SPORTSBOOK MATCH EDITOR ==================== */}
+      {/* ==================== TAB: SPORTSBOOK MATCH EDITOR ==================== */}
       {activeTab === "SPORTS" && (
         <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#23334E]/60 pb-3">
-            <div>
-              <h3 className="text-base font-black text-white uppercase tracking-wide">
-                Live Cricket & Football Match Score Control
-              </h3>
-              <p className="text-xs text-gray-400">Click any match to update live scores, ball-by-ball summary & minutes</p>
-            </div>
+          <div className="border-b border-[#23334E]/60 pb-3">
+            <h3 className="text-base font-black text-white uppercase tracking-wide">
+              Live Cricket & Football Match Score Control
+            </h3>
+            <p className="text-xs text-gray-400">Click any match to update live scores, ball-by-ball summary & minutes</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -958,9 +1066,11 @@ export default function AdminPage() {
               >
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-400 font-bold">{m.tournament}</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    m.status === "LIVE" ? "bg-red-500/20 text-red-400 animate-pulse" : "bg-gray-700 text-gray-300"
-                  }`}>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      m.status === "LIVE" ? "bg-red-500/20 text-red-400 animate-pulse" : "bg-gray-700 text-gray-300"
+                    }`}
+                  >
                     {m.status}
                   </span>
                 </div>
@@ -969,102 +1079,30 @@ export default function AdminPage() {
                   <span className="text-xs text-gray-500">VS</span>
                   <span>{m.awayTeam} ({m.awayScore})</span>
                 </div>
-                {m.liveSummary && (
-                  <div className="text-[11px] text-[#FFDE59] bg-[#0B0F1A] px-2.5 py-1 rounded-lg">
-                    {m.liveMinute} • {m.liveSummary}
-                  </div>
-                )}
-                <div className="text-[10px] text-right text-gray-400 underline font-bold">
-                  Click to Edit Score & Status →
-                </div>
               </div>
             ))}
           </div>
-
-          {/* Edit Score Modal */}
-          {selectedMatch && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-[#111827] border-2 border-[#BA2649] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-                <h4 className="text-base font-black text-white">
-                  Edit Match: {selectedMatch.homeTeam} vs {selectedMatch.awayTeam}
-                </h4>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-400 block mb-1">{selectedMatch.homeTeamCode} Score</label>
-                    <input
-                      type="text"
-                      value={homeScoreInput}
-                      onChange={(e) => setHomeScoreInput(e.target.value)}
-                      className="w-full bg-[#0B0F1A] border border-[#23334E] rounded-xl px-3 py-2 text-white font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block mb-1">{selectedMatch.awayTeamCode} Score</label>
-                    <input
-                      type="text"
-                      value={awayScoreInput}
-                      onChange={(e) => setAwayScoreInput(e.target.value)}
-                      className="w-full bg-[#0B0F1A] border border-[#23334E] rounded-xl px-3 py-2 text-white font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs text-gray-400 block mb-1">Live Minute / Over (e.g. 14.2 Ov or 68&apos;)</label>
-                  <input
-                    type="text"
-                    value={liveMinuteInput}
-                    onChange={(e) => setLiveMinuteInput(e.target.value)}
-                    className="w-full bg-[#0B0F1A] border border-[#23334E] rounded-xl px-3 py-2 text-white text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-gray-400 block mb-1">Live Commentary Summary</label>
-                  <input
-                    type="text"
-                    value={liveSummaryInput}
-                    onChange={(e) => setLiveSummaryInput(e.target.value)}
-                    className="w-full bg-[#0B0F1A] border border-[#23334E] rounded-xl px-3 py-2 text-white text-xs"
-                  />
-                </div>
-
-                <div className="flex space-x-2 pt-2">
-                  <button
-                    onClick={() => setSelectedMatch(null)}
-                    className="flex-1 py-2.5 bg-[#151F32] text-gray-300 font-bold text-xs rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveScore}
-                    className="flex-1 py-2.5 btn-burgundy text-white font-black text-xs rounded-xl shadow-retro"
-                  >
-                    Save & Broadcast
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* ==================== TAB 5: TRANSACTIONS LEDGER ==================== */}
+      {/* ==================== TAB: TRANSACTIONS LEDGER ==================== */}
       {activeTab === "TRANSACTIONS" && (
         <div className="p-6 bg-[#111827] border border-[#23334E] rounded-3xl space-y-4 shadow-xl">
           <h3 className="text-base font-black text-white uppercase tracking-wide">
-            Recent System Transactions & Deposits
+            Recent System Transactions
           </h3>
           <div className="space-y-2">
             {(metrics?.recentTransactions || []).map((t: any) => (
-              <div key={t.id} className="p-3 bg-[#151F32] border border-[#23334E] rounded-xl flex items-center justify-between text-xs">
+              <div
+                key={t.id}
+                className="p-3 bg-[#151F32] border border-[#23334E] rounded-xl flex items-center justify-between text-xs"
+              >
                 <div>
                   <span className="font-bold text-white">{t.type} via {t.method}</span>
                   <span className="text-gray-400 ml-2 font-mono">{t.txId ? `TxID: ${t.txId}` : ""}</span>
                 </div>
                 <div className="font-mono font-bold text-[#10B981]">
-                  ৳{t.amount.toLocaleString()}
+                  ৳{t.amount?.toLocaleString()}
                 </div>
               </div>
             ))}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { getAllUsers } from "@/lib/userStorage";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ export async function GET() {
     const cookieStore = cookies();
     const cookieUserId = cookieStore.get("auth_user_id")?.value;
 
-    // 1. Check direct cookie user
+    // 1. Check direct cookie user in DB
     if (cookieUserId) {
       try {
         const dbUser = await prisma.user.findUnique({
@@ -32,6 +33,26 @@ export async function GET() {
         }
       } catch (dbErr) {
         console.warn("DB user query error:", dbErr);
+      }
+
+      // Check fallback userStorage
+      const storedUsers = await getAllUsers();
+      const match = storedUsers.find((u) => u.id === cookieUserId || u.phone === cookieUserId);
+      if (match) {
+        return NextResponse.json({
+          user: {
+            id: match.id,
+            name: match.name,
+            email: match.email,
+            phone: match.phone,
+            role: match.role,
+            balance: match.balance,
+            bonusBalance: match.bonusBalance,
+            currency: "BDT",
+            referralCode: "WELCOME777",
+            coins: match.coins || 1500,
+          },
+        });
       }
     }
 

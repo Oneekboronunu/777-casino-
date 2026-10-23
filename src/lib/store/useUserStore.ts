@@ -10,6 +10,7 @@ export interface UserProfile {
   bonusBalance: number;
   currency: string;
   referralCode?: string | null;
+  couponCode?: string | null;
   // Coins & Decorations System
   coins: number;
   equippedFrame: string;
@@ -49,7 +50,7 @@ interface UserStoreState {
   claimDailyCoins: () => { success: boolean; amount: number; message: string };
 }
 
-const STORAGE_KEY = "777_casino_coins_profile_v2";
+const STORAGE_KEY = "777_casino_active_user_v3";
 
 const loadSavedProfileData = (): Partial<UserProfile> => {
   if (typeof window === "undefined") return {};
@@ -66,9 +67,19 @@ const saveProfileData = (data: Partial<UserProfile>) => {
   if (typeof window === "undefined") return;
   try {
     const existing = loadSavedProfileData();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, ...data }));
+    const updated = { ...existing, ...data };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
     console.error("Failed to save profile data", e);
+  }
+};
+
+const clearSavedProfile = () => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.error("Failed to clear profile", e);
   }
 };
 
@@ -84,20 +95,28 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
 
   setUser: (user) => {
     if (!user) {
+      clearSavedProfile();
       set({ user: null });
       return;
     }
     const saved = loadSavedProfileData();
     const mergedUser: UserProfile = {
       ...user,
-      balance: saved.balance !== undefined ? saved.balance : user.balance,
-      bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : user.bonusBalance,
-      coins: saved.coins !== undefined ? saved.coins : user.coins ?? 1500,
+      id: user.id || saved.id || `usr_${Date.now()}`,
+      name: user.name || saved.name || "Player",
+      phone: user.phone || saved.phone || null,
+      email: user.email || saved.email || "player@777casino.com",
+      role: user.role || saved.role || "USER",
+      balance: saved.balance !== undefined ? saved.balance : (user.balance ?? 2000),
+      bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : (user.bonusBalance ?? 2000),
+      coins: saved.coins !== undefined ? saved.coins : (user.coins ?? 1500),
       equippedFrame: saved.equippedFrame || user.equippedFrame || "frame-classic",
       equippedGameSkin: saved.equippedGameSkin || user.equippedGameSkin || "skin-felt-green",
       inventory: saved.inventory || user.inventory || ["frame-classic", "skin-felt-green"],
-      lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : user.lastDailyClaim ?? null,
+      lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : (user.lastDailyClaim ?? null),
     };
+
+    saveProfileData(mergedUser);
     set({ user: mergedUser });
   },
 
@@ -106,13 +125,12 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
     if (user) {
       const nextBalance = Math.max(0, user.balance + delta);
       const nextBonus = Math.max(0, (user.bonusBalance ?? 0) + bonusDelta);
-      set({
-        user: {
-          ...user,
-          balance: nextBalance,
-          bonusBalance: nextBonus,
-        },
-      });
+      const updated = {
+        ...user,
+        balance: nextBalance,
+        bonusBalance: nextBonus,
+      };
+      set({ user: updated });
       saveProfileData({ balance: nextBalance, bonusBalance: nextBonus });
     }
   },
@@ -121,13 +139,12 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
     const { user } = get();
     if (user) {
       const nextBonus = bonusBalance !== undefined ? bonusBalance : user.bonusBalance;
-      set({
-        user: {
-          ...user,
-          balance,
-          bonusBalance: nextBonus,
-        },
-      });
+      const updated = {
+        ...user,
+        balance,
+        bonusBalance: nextBonus,
+      };
+      set({ user: updated });
       saveProfileData({ balance, bonusBalance: nextBonus });
     }
   },
@@ -154,21 +171,51 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
   fetchUser: async () => {
     try {
       set({ isLoading: true });
+      const saved = loadSavedProfileData();
+
+      // If user is already permanently saved in browser localStorage, set immediately!
+      if (saved.id && saved.name) {
+        set({
+          user: {
+            id: saved.id,
+            name: saved.name,
+            phone: saved.phone || null,
+            email: saved.email || "player@777casino.com",
+            role: (saved.role as any) || "USER",
+            balance: saved.balance ?? 2000,
+            bonusBalance: saved.bonusBalance ?? 2000,
+            currency: "BDT",
+            coins: saved.coins ?? 1500,
+            equippedFrame: saved.equippedFrame || "frame-classic",
+            equippedGameSkin: saved.equippedGameSkin || "skin-felt-green",
+            inventory: saved.inventory || ["frame-classic", "skin-felt-green"],
+            lastDailyClaim: saved.lastDailyClaim || null,
+          },
+        });
+      }
+
       const res = await fetch("/api/user/me");
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
-          const saved = loadSavedProfileData();
+          // If server returned demo user, but localStorage has our real user, preserve real user
+          const isServerDemo = data.user.id === "demo_vip_user";
+          const hasLocalCustomUser = saved.id && saved.id !== "demo_vip_user";
+
+          const baseUser = hasLocalCustomUser && isServerDemo ? saved : data.user;
+
           const mergedUser: UserProfile = {
-            ...data.user,
-            balance: saved.balance !== undefined ? saved.balance : data.user.balance,
-            bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : data.user.bonusBalance,
-            coins: saved.coins !== undefined ? saved.coins : (data.user.coins ?? 1500),
-            equippedFrame: saved.equippedFrame || data.user.equippedFrame || "frame-classic",
-            equippedGameSkin: saved.equippedGameSkin || data.user.equippedGameSkin || "skin-felt-green",
-            inventory: saved.inventory || data.user.inventory || ["frame-classic", "skin-felt-green"],
-            lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : (data.user.lastDailyClaim ?? null),
+            ...baseUser,
+            balance: saved.balance !== undefined ? saved.balance : baseUser.balance,
+            bonusBalance: saved.bonusBalance !== undefined ? saved.bonusBalance : baseUser.bonusBalance,
+            coins: saved.coins !== undefined ? saved.coins : (baseUser.coins ?? 1500),
+            equippedFrame: saved.equippedFrame || baseUser.equippedFrame || "frame-classic",
+            equippedGameSkin: saved.equippedGameSkin || baseUser.equippedGameSkin || "skin-felt-green",
+            inventory: saved.inventory || baseUser.inventory || ["frame-classic", "skin-felt-green"],
+            lastDailyClaim: saved.lastDailyClaim !== undefined ? saved.lastDailyClaim : (baseUser.lastDailyClaim ?? null),
           };
+
+          saveProfileData(mergedUser);
           set({ user: mergedUser });
         }
       }

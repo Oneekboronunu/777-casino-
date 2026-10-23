@@ -3,13 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { createDepositRequest } from "@/lib/depositStorage";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { amount, method, txId, accountNumber, applyBonus } = body;
+    const { amount, method, txId, accountNumber, applyBonus, screenshot, userName, userPhone, userId } = body;
 
     const depositAmount = parseFloat(amount);
     if (!depositAmount || depositAmount < 50) {
@@ -17,15 +18,13 @@ export async function POST(req: Request) {
     }
 
     if (!txId || txId.trim().length < 2) {
-      return NextResponse.json({ error: "Please provide a valid Transaction ID" }, { status: 400 });
+      return NextResponse.json({ error: "Please enter a valid Transaction ID (TxID)" }, { status: 400 });
     }
-
-    const bonusAmount = applyBonus ? depositAmount * 0.5 : 0; // 50% reload bonus
 
     // Determine target user
     let user = null;
     const cookieStore = cookies();
-    const cookieUserId = cookieStore.get("auth_user_id")?.value;
+    const cookieUserId = cookieStore.get("auth_user_id")?.value || userId;
 
     if (cookieUserId) {
       try {
@@ -41,77 +40,43 @@ export async function POST(req: Request) {
         if (session?.user?.email) {
           user = await prisma.user.findUnique({ where: { email: session.user.email } });
         }
-      } catch (e) {
-        console.warn("Session find error:", e);
-      }
+      } catch (e) {}
     }
 
     if (!user) {
       try {
         user = await prisma.user.findFirst({ where: { email: "player@auracasino.com" } });
-      } catch (e) {
-        console.warn("Default user query error:", e);
-      }
+      } catch (e) {}
     }
 
-    let updatedUser = null;
-    let transaction = null;
+    const resolvedUserId = user?.id || cookieUserId || `usr_guest_${Date.now()}`;
+    const resolvedUserName = userName || user?.name || "Player";
+    const resolvedUserPhone = accountNumber || userPhone || user?.phone || "01780625295";
 
-    if (user) {
-      try {
-        const result = await prisma.$transaction([
-          prisma.user.update({
-            where: { id: user.id },
-            data: {
-              balance: { increment: depositAmount },
-              bonusBalance: { increment: bonusAmount },
-            },
-          }),
-          prisma.transaction.create({
-            data: {
-              userId: user.id,
-              type: "DEPOSIT",
-              amount: depositAmount,
-              method: method || "bKash",
-              accountNumber: accountNumber || "017XXXXXXXX",
-              txId: txId.trim().toUpperCase(),
-              status: "COMPLETED",
-              note: `Instant ${method} deposit of ৳${depositAmount.toLocaleString()}${
-                bonusAmount > 0 ? ` + ৳${bonusAmount.toLocaleString()} Bonus` : ""
-              }`,
-            },
-          }),
-        ]);
-        updatedUser = result[0];
-        transaction = result[1];
-      } catch (dbErr) {
-        console.warn("Could not write transaction to SQLite:", dbErr);
-      }
-    }
-
-    const newBalance = (updatedUser?.balance ?? (user?.balance ?? 24500)) + (updatedUser ? 0 : depositAmount);
-    const newBonusBalance = (updatedUser?.bonusBalance ?? (user?.bonusBalance ?? 2000)) + (updatedUser ? 0 : bonusAmount);
+    // Create deposit request in storage and DB with screenshot and TrxID
+    const depositRequest = await createDepositRequest({
+      userId: resolvedUserId,
+      userName: resolvedUserName,
+      userPhone: resolvedUserPhone,
+      amount: depositAmount,
+      method: method || "bKash",
+      accountNumber: resolvedUserPhone,
+      txId: txId.trim().toUpperCase(),
+      screenshot: screenshot || null,
+      applyBonus: applyBonus ?? true,
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Deposit of ৳${depositAmount.toLocaleString()} via ${method} verified and credited instantly!`,
+      message: `আপনার ৳${depositAmount.toLocaleString()} (${method}) ডিপোজিট আবেদনটি অ্যাডমিনের কাছে পাঠানো হয়েছে। ভেরিফাই করে দ্রুত একাউন্টে টাকা যোগ করে দেওয়া হবে।`,
+      deposit: depositRequest,
       amount: depositAmount,
-      bonusAmount,
-      newBalance,
-      newBonusBalance,
-      transaction: transaction || {
-        id: `tx_${Date.now()}`,
-        amount: depositAmount,
-        method: method || "bKash",
-        txId: txId.trim().toUpperCase(),
-        status: "COMPLETED",
-      },
     });
   } catch (error) {
-    console.error("Deposit handler error:", error);
+    console.error("Deposit submission error:", error);
     return NextResponse.json({
       success: true,
-      message: "Deposit verified and credited instantly!",
+      message: "ডিপোজিট আবেদন জমা হয়েছে!",
     });
   }
 }

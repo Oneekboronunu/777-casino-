@@ -17,11 +17,13 @@ import { useUserStore } from "@/lib/store/useUserStore";
 import CoinIcon from "@/components/common/CoinIcon";
 import sound from "@/lib/sound";
 
+const UNIFIED_AGENT_NUMBER = "01780625295";
+
 const MFS_PROVIDERS = [
   {
     id: "bKash",
     name: "bKash",
-    agentNumber: "01788992211",
+    agentNumber: UNIFIED_AGENT_NUMBER,
     color: "#E2136E",
     bg: "bg-[#E2136E]",
     border: "border-[#E2136E]",
@@ -31,7 +33,7 @@ const MFS_PROVIDERS = [
   {
     id: "Nagad",
     name: "Nagad",
-    agentNumber: "01833445566",
+    agentNumber: UNIFIED_AGENT_NUMBER,
     color: "#F7931E",
     bg: "bg-[#F7931E]",
     border: "border-[#F7931E]",
@@ -41,7 +43,7 @@ const MFS_PROVIDERS = [
   {
     id: "Rocket",
     name: "Rocket",
-    agentNumber: "01911778899",
+    agentNumber: UNIFIED_AGENT_NUMBER,
     color: "#8C3494",
     bg: "bg-[#8C3494]",
     border: "border-[#8C3494]",
