@@ -43,6 +43,12 @@ class RootErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-gray-300 mb-4">A temporary display state was refreshed.</p>
           <button
             onClick={() => {
+              try {
+                localStorage.removeItem("777_casino_active_user_v3");
+                localStorage.removeItem("777_casino_active_user_v2");
+                localStorage.removeItem("777_casino_active_user");
+                sessionStorage.clear();
+              } catch {}
               this.setState({ hasError: false });
               window.location.reload();
             }}
@@ -65,8 +71,11 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
   useEffect(() => {
     setMounted(true);
-    // Fetch current user session once on mount safely
-    useUserStore.getState().fetchUser();
+    try {
+      useUserStore.getState().fetchUser().catch(() => {});
+    } catch (err) {
+      console.warn("fetchUser mount error:", err);
+    }
   }, []);
 
   return (
