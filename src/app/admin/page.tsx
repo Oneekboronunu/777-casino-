@@ -703,8 +703,14 @@ export default function AdminPage() {
 
       {/* Full-Screen Screenshot Lightbox Modal */}
       {selectedScreenshotDeposit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-150">
-          <div className="relative max-w-3xl w-full bg-[#111827] border-2 border-[#FFDE59] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col">
+        <div
+          onClick={() => setSelectedScreenshotDeposit(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-150 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-3xl w-full bg-[#111827] border-2 border-[#FFDE59] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col cursor-default"
+          >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h4 className="text-base font-black text-[#FFDE59]">

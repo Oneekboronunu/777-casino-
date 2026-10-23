@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   X,
   CheckCircle,
@@ -170,9 +170,26 @@ export default function DepositModal() {
     setScreenshot(null);
   };
 
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-[#111827] border-2 border-[#D4AF37]/50 rounded-3xl shadow-2xl overflow-hidden my-6">
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg bg-[#111827] border-2 border-[#D4AF37]/50 rounded-3xl shadow-2xl overflow-hidden my-6 cursor-default"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#23334E] bg-gradient-to-r from-[#240B16] via-[#140C12] to-[#240B16]">
           <div className="flex items-center space-x-2.5">

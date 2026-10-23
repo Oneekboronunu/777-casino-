@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CheckCircle, ShieldCheck, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
@@ -90,9 +90,25 @@ export default function WithdrawModal() {
     setAccountNumber("");
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-[#111827] border border-[#23334E] rounded-2xl shadow-2xl overflow-hidden my-8">
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg bg-[#111827] border border-[#23334E] rounded-2xl shadow-2xl overflow-hidden my-8 cursor-default"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#23334E] bg-[#0E1523]">
           <div className="flex items-center space-x-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, User, Phone, Sparkles, Gift, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
@@ -109,9 +109,25 @@ export default function AuthModal() {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeAuthModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [closeAuthModal]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#120B10] border-2 border-[#D4AF37]/50 rounded-3xl shadow-2xl overflow-hidden my-8 text-white">
+    <div
+      onClick={closeAuthModal}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md bg-[#120B10] border-2 border-[#D4AF37]/50 rounded-3xl shadow-2xl overflow-hidden my-8 text-white cursor-default"
+      >
         {/* Top Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#D4AF37]/30 bg-gradient-to-r from-[#2B101D] via-[#1A0A12] to-[#2B101D]">
           <div className="flex items-center space-x-2.5">
