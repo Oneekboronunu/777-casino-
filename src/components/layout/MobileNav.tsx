@@ -8,7 +8,8 @@ import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
 
 export default function MobileNav() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname || "";
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
 
   const handleDepositClick = () => {

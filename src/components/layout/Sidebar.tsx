@@ -21,7 +21,8 @@ import {
 import { useUserStore } from "@/lib/store/useUserStore";
 
 export default function Sidebar() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname || "";
   const { user } = useUserStore();
 
   const casinoGames = [

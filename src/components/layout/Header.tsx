@@ -24,7 +24,8 @@ import CoinIcon from "@/components/common/CoinIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 
 export default function Header() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname || "";
   const {
     user,
     setIsDepositModalOpen,
