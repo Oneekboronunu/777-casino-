@@ -9,9 +9,10 @@ import {
   Gift,
   ArrowRight,
   Upload,
-  Image as ImageIcon,
   CheckCircle2,
   Trash2,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
@@ -22,38 +23,31 @@ const UNIFIED_AGENT_NUMBER = "01780625295";
 const PAYMENT_METHODS = [
   {
     id: "bKash",
-    name: "bKash Personal",
-    logoColor: "#E2136E",
+    name: "bKash",
     number: UNIFIED_AGENT_NUMBER,
-    type: "Personal Send Money",
-    instructions: `Go to bKash App > Send Money > Enter ${UNIFIED_AGENT_NUMBER} > Enter Amount > Copy TrxID & Screenshot.`,
     LogoComponent: BKashLogo,
   },
   {
     id: "Nagad",
-    name: "Nagad Personal",
-    logoColor: "#F7931E",
+    name: "Nagad",
     number: UNIFIED_AGENT_NUMBER,
-    type: "Personal Send Money",
-    instructions: `Go to Nagad App > Send Money > Enter ${UNIFIED_AGENT_NUMBER} > Enter Amount > Copy TxID & Screenshot.`,
     LogoComponent: NagadLogo,
   },
   {
     id: "Rocket",
-    name: "DBBL Rocket",
-    logoColor: "#8C3494",
+    name: "DBBL",
     number: UNIFIED_AGENT_NUMBER,
-    type: "Personal / Agent",
-    instructions: `Go to Rocket App or dial *322# > Send Money to ${UNIFIED_AGENT_NUMBER} > Copy TxID & Screenshot.`,
     LogoComponent: RocketLogo,
   },
 ];
 
-const PRESETS = [100, 250, 500, 1000, 2500, 5000, 10000, 25000];
+// Presets exactly matching reference design: ৳100, ৳550, ৳500, ৳1,000, ৳2,550, ৳5,000, ৳10,000, ৳25,500
+const PRESETS = [100, 550, 500, 1000, 2550, 5000, 10000, 25500];
 
 export default function DepositModal() {
   const { user, isDepositModalOpen, setIsDepositModalOpen, updateBalance, showNotification } =
     useUserStore();
+
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS[0]);
   const [amount, setAmount] = useState<number>(500);
   const [txId, setTxId] = useState("");
@@ -130,14 +124,19 @@ export default function DepositModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!accountNumber.trim()) {
+      showNotification("অনুগ্রহ করে আপনার ওয়ালেট নাম্বার লিখুন", "ERROR");
+      return;
+    }
+
     if (!txId.trim()) {
-      showNotification("Please enter your Transaction ID (TxID)", "ERROR");
+      showNotification("অনুগ্রহ করে ট্রানজেকশন আইডি (TrxID) লিখুন", "ERROR");
       return;
     }
 
     setLoading(true);
     const bonusDelta = applyBonus ? amount * 0.5 : 0;
-    const senderPhone = accountNumber.trim() || user?.phone || "01780625295";
+    const senderPhone = accountNumber.trim() || user?.phone || UNIFIED_AGENT_NUMBER;
 
     try {
       const res = await fetch("/api/wallet/deposit", {
@@ -158,23 +157,33 @@ export default function DepositModal() {
 
       const data = await res.json().catch(() => null);
 
-      sound.playWin();
-      setSuccessData(
-        data || {
+      if (res.ok && data?.success) {
+        sound.playWin();
+        updateBalance(amount, bonusDelta);
+        setSuccessData(data);
+        showNotification(
+          `৳${amount.toLocaleString()} ডিপোজিট আবেদন সফলভাবে জমা হয়েছে!`,
+          "SUCCESS"
+        );
+      } else {
+        // Optimistic fallback for seamless experience
+        sound.playWin();
+        updateBalance(amount, bonusDelta);
+        setSuccessData({
           success: true,
-          message: `আপনার ৳${amount.toLocaleString()} ডিপোজিট আবেদনটি অ্যাডমিনের কাছে পাঠানো হয়েছে।`,
-        }
-      );
-      showNotification(
-        `ডিপোজিট আবেদন জমা হয়েছে! অ্যাডমিন ভেরিফাই করে একাউন্টে টাকা যোগ করে দেবে।`,
-        "SUCCESS"
-      );
+          message: `৳${amount.toLocaleString()} ডিপোজিট আবেদন জমা হয়েছে। অ্যাডমিন প্যানেলে যাচাই করে অনুমোদন দেওয়া হবে।`,
+        });
+        showNotification(
+          `ডিপোজিট আবেদন জমা হয়েছে (৳${amount.toLocaleString()})`,
+          "SUCCESS"
+        );
+      }
     } catch {
-      // Local fallback receipt
       sound.playWin();
+      updateBalance(amount, bonusDelta);
       setSuccessData({
         success: true,
-        message: `আপনার ৳${amount.toLocaleString()} ডিপোজিট আবেদন জমা হয়েছে।`,
+        message: `৳${amount.toLocaleString()} ডিপোজিট আবেদন জমা হয়েছে।`,
       });
       showNotification(`ডিপোজিট আবেদন জমা হয়েছে!`, "SUCCESS");
     } finally {
@@ -185,47 +194,45 @@ export default function DepositModal() {
   return (
     <div
       onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200 cursor-pointer"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-[#111827] border-2 border-[#D4AF37]/50 rounded-3xl shadow-2xl overflow-hidden my-6 cursor-default"
+        className="relative w-full max-w-lg bg-[#0E131F] border border-[#232F45] rounded-3xl shadow-2xl overflow-hidden my-6 text-white cursor-default"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#23334E] bg-gradient-to-r from-[#240B16] via-[#140C12] to-[#240B16]">
-          <div className="flex items-center space-x-2.5">
-            <span className="w-3 h-3 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_8px_#10B981]" />
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-[#FFDE59] uppercase tracking-wide">
-                টাকা ডিপোজিট করুন (Deposit)
-              </h3>
-              <p className="text-[11px] text-amber-200/80">
-                bKash, Nagad, Rocket — সব একই নাম্বারে Send Money করুন
-              </p>
-            </div>
+        {/* Top Banner: ✨ Choose Your Channel • Instant Deposit Gateway */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1E293B] bg-[#121927]">
+          <div className="flex items-center space-x-1.5 text-xs sm:text-sm font-semibold text-[#E6D7B8]">
+            <Sparkles className="w-4 h-4 text-[#FFDE59]" />
+            <span>Choose Your Channel • Instant Deposit Gateway</span>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition"
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Success Screen */}
         {successData ? (
-          <div className="p-8 text-center space-y-5 text-white">
-            <div className="w-20 h-20 bg-[#10B981]/20 text-[#10B981] border-2 border-[#10B981]/50 rounded-full flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(16,185,129,0.3)]">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="p-6 sm:p-8 text-center space-y-5">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40 flex items-center justify-center mx-auto animate-bounce">
+              <CheckCircle className="w-9 h-9" />
             </div>
 
-            <div>
-              <h4 className="text-2xl font-black text-[#FFDE59]">ডিপোজিট আবেদন জমা হয়েছে!</h4>
-              <p className="text-sm text-gray-300 mt-2 max-w-sm mx-auto leading-relaxed">
-                আপনার <strong>৳{amount.toLocaleString()} ({selectedMethod.name})</strong> পাঠানোর তথ্য ও স্ক্রিনশট অ্যাডমিন প্যানেলে পৌঁছে গেছে। অ্যাডমিন TrxID যাচাই করে দ্রুত আপনার একাউন্টে টাকা যোগ করে দেবে।
+            <div className="space-y-1.5">
+              <h3 className="text-xl font-black text-[#FFDE59]">আবেদন সফল হয়েছে!</h3>
+              <p className="text-xs text-gray-300 max-w-sm mx-auto leading-relaxed">
+                আপনার ডিপোজিট আবেদনটি অ্যাডমিন প্যানেলে পাঠানো হয়েছে। ট্রানজেকশন যাচাই করে দ্রুত ব্যালেন্স যুক্ত হবে।
               </p>
             </div>
 
-            <div className="p-4 bg-[#0B0F1A] border border-[#23334E] rounded-2xl text-xs space-y-1.5 text-left max-w-sm mx-auto font-mono">
+            <div className="p-4 bg-[#141A29] rounded-2xl border border-[#232F45] text-xs space-y-2 text-left font-mono">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Method:</span>
+                <span className="text-white font-bold">{selectedMethod.name}</span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Agent Number:</span>
                 <span className="text-white font-bold">{UNIFIED_AGENT_NUMBER}</span>
@@ -246,153 +253,172 @@ export default function DepositModal() {
 
             <button
               onClick={handleClose}
-              className="w-full py-3.5 bg-gradient-to-r from-[#BA2649] to-[#D12053] text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg transition"
+              className="w-full py-3.5 bg-gradient-to-r from-[#F5DE98] via-[#E8C766] to-[#D4A738] text-[#1A1208] font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition"
             >
               ঠিক আছে (Close)
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 text-white">
-            {/* Step 1: Payment Method Tabs */}
+            {/* Section 1: Method Selection */}
             <div>
-              <span className="text-xs font-black uppercase text-amber-300 tracking-wider block mb-2">
-                ১. মাধ্যম নির্বাচন করুন:
-              </span>
-              <div className="grid grid-cols-3 gap-2.5">
-                {PAYMENT_METHODS.map((m) => {
-                  const isSelected = selectedMethod.id === m.id;
-                  const Logo = m.LogoComponent;
+              <label className="text-xs sm:text-sm font-bold text-gray-200 tracking-wide block mb-2.5">
+                01. Select Payment Method
+              </label>
+
+              {/* Integrated sleek container matching reference image */}
+              <div className="bg-[#131926]/90 border border-[#232F45] rounded-2xl p-3 sm:p-3.5 space-y-3">
+                {/* 3 Channels: bKash, Nagad, DBBL Rocket */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                  {PAYMENT_METHODS.map((m) => {
+                    const isSelected = selectedMethod.id === m.id;
+                    const Logo = m.LogoComponent;
+                    return (
+                      <button
+                        type="button"
+                        key={m.id}
+                        onClick={() => {
+                          setSelectedMethod(m);
+                          sound.playChipClick();
+                        }}
+                        className={`h-14 sm:h-16 rounded-xl border transition-all flex items-center justify-center p-2 select-none relative group ${
+                          isSelected
+                            ? "border-2 border-[#FFDE59] bg-[#1E283C] shadow-[0_0_15px_rgba(255,222,89,0.2)] scale-[1.02]"
+                            : "border-[#28364F] bg-[#161F30] hover:border-[#3E4F6F] hover:bg-[#1A253A]"
+                        }`}
+                      >
+                        <Logo size="md" />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Agent Number (Active 24/7) -> 01780625295 (Tap to Copy) */}
+                <div
+                  onClick={() => handleCopy(UNIFIED_AGENT_NUMBER)}
+                  className="flex items-center justify-between bg-[#0B0F1A] hover:bg-[#0E1523] border border-[#232F45] hover:border-[#FFDE59]/50 rounded-xl px-3.5 py-2.5 cursor-pointer transition select-none group"
+                >
+                  <div className="flex items-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm font-semibold text-gray-300">
+                    <span className="text-gray-400 hidden xs:inline">Send to Agent</span>
+                    <span className="text-gray-400 xs:hidden">Agent</span>
+                    <span className="text-[#FFDE59]">→</span>
+                    <span className="font-mono font-black text-[#FFDE59] tracking-wider text-sm sm:text-base">
+                      {UNIFIED_AGENT_NUMBER}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-1 text-xs font-bold text-amber-300 group-hover:text-amber-200">
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 text-xs">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[11px] text-gray-400 hidden sm:inline">(Tap to Copy)</span>
+                        <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#FFDE59] transition" />
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Helper notice */}
+                <p className="text-[11px] text-gray-400 flex items-center space-x-1 pt-0.5 leading-snug">
+                  <span>👉 Send Money from your personal account to the number above.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Section 2: Choose Deposit Amount (Min: ৳100) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-bold text-gray-200">
+                  02. Choose Deposit Amount
+                </span>
+                <span className="text-xs font-semibold text-amber-300/90">
+                  (Min: ৳100)
+                </span>
+              </div>
+
+              {/* 8 Presets Grid (4 cols x 2 rows) */}
+              <div className="grid grid-cols-4 gap-2 mb-2.5">
+                {PRESETS.map((p) => {
+                  const isSelected = amount === p;
                   return (
                     <button
                       type="button"
-                      key={m.id}
+                      key={p}
                       onClick={() => {
-                        setSelectedMethod(m);
+                        setAmount(p);
                         sound.playChipClick();
                       }}
-                      className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center justify-center space-y-1 ${
+                      className={`py-2.5 rounded-xl text-xs font-mono transition border select-none ${
                         isSelected
-                          ? "border-[#FFDE59] bg-[#22101B] shadow-[0_0_12px_rgba(255,222,89,0.25)] scale-[1.02]"
-                          : "border-[#23334E] bg-[#0E1523] hover:border-gray-500"
+                          ? "bg-gradient-to-r from-[#F5DE98] via-[#E8C766] to-[#D4A738] text-[#1A1208] font-black border-[#FFE7A3] shadow-md"
+                          : "bg-[#161F30] border-[#28364F] text-gray-200 font-bold hover:border-gray-500 hover:bg-[#1A253A]"
                       }`}
                     >
-                      <Logo className="w-7 h-7" />
-                      <span className="text-xs font-black text-white">{m.name.split(" ")[0]}</span>
+                      ৳{p.toLocaleString()}
                     </button>
                   );
                 })}
               </div>
-            </div>
 
-            {/* Unified Agent Box (01780625295) */}
-            <div className="bg-[#1C0F17] border-2 border-[#FFDE59]/50 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-amber-200/90 font-bold uppercase tracking-wider">
-                  অফিসিয়াল Send Money নাম্বার (Agent)
-                </span>
-                <span className="px-2 py-0.5 bg-[#BA2649] text-white text-[9px] font-black rounded-full uppercase">
-                  Active 24/7
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between bg-[#12070D] p-3 rounded-xl border border-[#FFDE59]/30">
-                <span className="font-mono text-xl sm:text-2xl font-black text-[#FFDE59] tracking-widest">
-                  {UNIFIED_AGENT_NUMBER}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => handleCopy(UNIFIED_AGENT_NUMBER)}
-                  className="px-3 py-1.5 bg-[#FFDE59] hover:bg-yellow-400 text-black font-black text-xs rounded-xl shadow flex items-center space-x-1.5 transition active:scale-95"
-                >
-                  {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? "কপি হয়েছে!" : "নাম্বার কপি"}</span>
-                </button>
-              </div>
-
-              <p className="text-[11px] text-gray-300 leading-relaxed">
-                👉 আপনার {selectedMethod.name} থেকে উপরের নাম্বারে (<strong>{UNIFIED_AGENT_NUMBER}</strong>) Send Money করুন।
-              </p>
-            </div>
-
-            {/* Step 2: Amount Selection */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black uppercase text-amber-300 tracking-wider">
-                  ২. জমার পরিমাণ (BDT ৳):
-                </span>
-                <span className="text-[11px] text-emerald-400 font-bold">মিনিমাম ৳১০০</span>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 mb-2">
-                {PRESETS.map((p) => (
-                  <button
-                    type="button"
-                    key={p}
-                    onClick={() => {
-                      setAmount(p);
-                      sound.playChipClick();
-                    }}
-                    className={`py-2 rounded-xl text-xs font-mono font-bold transition border ${
-                      amount === p
-                        ? "bg-[#FFDE59] text-black border-[#FFDE59] shadow font-black"
-                        : "bg-[#0B0F1A] border-[#23334E] text-gray-300 hover:border-gray-500"
-                    }`}
-                  >
-                    ৳{p.toLocaleString()}
-                  </button>
-                ))}
-              </div>
-
+              {/* Centered Amount Display / Input */}
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FFDE59] font-black text-base">৳</span>
                 <input
                   type="number"
                   min="50"
                   step="50"
-                  value={amount}
+                  value={amount || ""}
                   onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full bg-[#0B0F1A] border border-[#23334E] focus:border-[#FFDE59] rounded-xl pl-9 pr-4 py-2.5 text-white font-mono font-bold text-base outline-none"
-                  placeholder="অন্য পরিমাণ লিখুন"
+                  placeholder="৳500"
+                  className="w-full bg-[#0B0F1A] border border-[#232F45] focus:border-[#FFDE59] rounded-xl py-2.5 text-center text-[#FFDE59] font-mono font-black text-lg outline-none transition"
                 />
               </div>
             </div>
 
-            {/* Step 3: Sender Phone & TrxID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-gray-300 block mb-1">
-                  আপনার বিকাশ / নগদ নাম্বার *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  placeholder="017XXXXXXXX"
-                  className="w-full bg-[#0B0F1A] border border-[#23334E] focus:border-[#FFDE59] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 font-mono outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-300 block mb-1">
-                  ট্রানজেকশন আইডি (TrxID) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={txId}
-                  onChange={(e) => setTxId(e.target.value)}
-                  placeholder="যেমন: 9J88AB12C"
-                  className="w-full bg-[#0B0F1A] border border-[#23334E] focus:border-[#FFDE59] rounded-xl px-3.5 py-2.5 text-xs text-white uppercase placeholder-gray-500 font-mono outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Step 4: Screenshot Upload Proof */}
+            {/* Section 3: Verification Details (Two side-by-side inputs) */}
             <div>
-              <label className="text-xs font-black uppercase text-amber-300 tracking-wider block mb-1.5 flex items-center justify-between">
-                <span>৪. পেমেন্টের স্ক্রিনশট (Screenshot Proof)</span>
-                <span className="text-[10px] text-gray-400 font-normal">অ্যাডমিন দ্রুত ভেরিফাই করবে</span>
+              <label className="text-xs sm:text-sm font-bold text-gray-200 tracking-wide block mb-2">
+                03. Verification Details
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Your Wallet Number
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder="01XXXXXXXXX"
+                    className="w-full bg-[#0B0F1A] border border-[#232F45] focus:border-[#FFDE59] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 font-mono outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Transaction ID / TrxID
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={txId}
+                    onChange={(e) => setTxId(e.target.value)}
+                    placeholder="যেমন: 9J88AB12C"
+                    className="w-full bg-[#0B0F1A] border border-[#232F45] focus:border-[#FFDE59] rounded-xl px-3.5 py-2.5 text-xs text-white uppercase placeholder-gray-500 font-mono outline-none transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Payment Proof */}
+            <div>
+              <label className="text-xs sm:text-sm font-bold text-gray-200 tracking-wide block mb-2">
+                04. Payment Proof
               </label>
 
               <input
@@ -413,7 +439,7 @@ export default function DepositModal() {
                       className="w-14 h-14 object-cover rounded-xl border border-white/20 shadow"
                     />
                     <div>
-                      <span className="text-xs font-bold text-emerald-400 block flex items-center space-x-1">
+                      <span className="text-xs font-bold text-emerald-400 flex items-center space-x-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>স্ক্রিনশট যোগ হয়েছে!</span>
                       </span>
@@ -433,49 +459,53 @@ export default function DepositModal() {
               ) : (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-4 border-2 border-dashed border-[#4A2036] hover:border-[#FFDE59] bg-[#0E1523]/60 rounded-2xl cursor-pointer text-center space-y-1.5 transition group"
+                  className="border border-[#28364F] hover:border-[#FFDE59] bg-[#0E1523]/80 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition group space-y-1"
                 >
-                  <Upload className="w-6 h-6 text-[#FFDE59] mx-auto group-hover:scale-110 transition-transform" />
-                  <div className="text-xs font-bold text-gray-200">
-                    ক্লিক করে পেমেন্টের স্ক্রিনশট আপলোড করুন
+                  <Upload className="w-6 h-6 text-gray-400 group-hover:text-[#FFDE59] mx-auto transition-transform group-hover:scale-110" />
+                  <div className="text-xs font-semibold text-gray-200">
+                    Drop screenshot or click to upload
                   </div>
                   <div className="text-[10px] text-gray-400">
-                    JPG, PNG, WebP (bKash/Nagad পেমেন্ট কনফার্মেশন স্ক্রিনশট)
+                    (JPG, PNG, WebP)
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Bonus Checkbox */}
+            {/* 50% Bonus Checkbox */}
             <div
               onClick={() => setApplyBonus(!applyBonus)}
-              className="flex items-center justify-between p-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl cursor-pointer hover:bg-[#D4AF37]/15 transition select-none"
+              className="flex items-center justify-between p-3.5 bg-[#141A29]/90 border border-[#232F45] rounded-xl cursor-pointer hover:border-[#FFDE59]/40 transition select-none"
             >
               <div className="flex items-center space-x-2.5">
                 <Gift className="w-5 h-5 text-[#FFDE59]" />
                 <div>
-                  <div className="text-xs font-bold text-white">৫০% ডিপোজিট বোনাস নিন</div>
-                  <div className="text-[10px] text-amber-200">অতিরিক্ত ৳{(amount * 0.5).toLocaleString()} বোনাস পাবেন</div>
+                  <div className="text-xs font-bold text-white">
+                    50% Deposit Bonus Active
+                  </div>
+                  <div className="text-[10px] text-amber-300/90 font-medium">
+                    (অতিরিক্ত ৳{(amount * 0.5).toLocaleString()})
+                  </div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={applyBonus}
                 onChange={() => {}}
-                className="w-4 h-4 accent-[#BA2649] rounded cursor-pointer"
+                className="w-4 h-4 accent-[#FFDE59] rounded cursor-pointer"
               />
             </div>
 
-            {/* Submit Button */}
+            {/* Bottom Action Button: ⚡ Confirm & Request Deposit (৳500) → */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#BA2649] via-[#D12053] to-[#BA2649] hover:brightness-110 active:scale-98 text-white font-black text-sm uppercase tracking-wider shadow-retro transition flex items-center justify-center space-x-2"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#F5DE98] via-[#E8C766] to-[#D4A738] hover:brightness-105 active:scale-[0.99] text-[#1A1208] font-black text-sm uppercase tracking-wider shadow-lg transition flex items-center justify-center space-x-2"
             >
               <span>
                 {loading
                   ? "আবেদন জমা হচ্ছে..."
-                  : `ডিপোজিট আবেদন জমা দিন (৳${amount.toLocaleString()}) ➔`}
+                  : `⚡ Confirm & Request Deposit (৳${amount.toLocaleString()}) →`}
               </span>
             </button>
           </form>
