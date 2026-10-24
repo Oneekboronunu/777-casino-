@@ -37,7 +37,9 @@ function AccountPageContent() {
     claimDailyCoins,
   } = useUserStore();
 
-  const initialTab = searchParams?.get("tab") === "FRAMES" ? "FRAMES" : "PROFILE";
+  const tabParam =
+    searchParams && typeof searchParams.get === "function" ? searchParams.get("tab") : null;
+  const initialTab = tabParam === "FRAMES" ? "FRAMES" : "PROFILE";
   const [activeTab, setActiveTab] = useState<
     "PROFILE" | "FRAMES" | "HISTORY" | "REFERRAL" | "RESPONSIBLE"
   >(initialTab);

@@ -32,7 +32,7 @@ export default function ErrorBoundary({
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            onClick={() => reset()}
+            onClick={() => { if (typeof window !== 'undefined') { window.location.reload(); } else { reset(); } }}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-newspaper-navy text-white text-xs font-semibold hover:bg-newspaper-blue transition-colors"
           >
             <RefreshCcw className="w-3.5 h-3.5" />

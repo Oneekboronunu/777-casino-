@@ -15,10 +15,18 @@ export default function GlobalError({
 
   const handleReset = () => {
     try {
-      localStorage.clear();
-      sessionStorage.clear();
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+        return;
+      }
     } catch {}
-    reset();
+    try {
+      reset();
+    } catch {
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+    }
   };
 
   return (
