@@ -14,6 +14,17 @@ export default function AuthModal() {
   const [couponCode, setCouponCode] = useState("welcomnewbie");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeAuthModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAuthModalOpen, closeAuthModal]);
+
   if (!isAuthModalOpen) return null;
 
   const handleApplyNewbieCoupon = () => {
@@ -108,16 +119,6 @@ export default function AuthModal() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeAuthModal();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [closeAuthModal]);
 
   return (
     <div

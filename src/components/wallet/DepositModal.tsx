@@ -66,6 +66,25 @@ export default function DepositModal() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const handleClose = () => {
+    setIsDepositModalOpen(false);
+    setSuccessData(null);
+    setTxId("");
+    setScreenshot(null);
+  };
+
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isDepositModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDepositModalOpen]);
+
   if (!isDepositModalOpen) return null;
 
   const handleCopy = (text: string) => {
@@ -162,24 +181,6 @@ export default function DepositModal() {
       setLoading(false);
     }
   };
-
-  const handleClose = () => {
-    setIsDepositModalOpen(false);
-    setSuccessData(null);
-    setTxId("");
-    setScreenshot(null);
-  };
-
-  // Close on Escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <div

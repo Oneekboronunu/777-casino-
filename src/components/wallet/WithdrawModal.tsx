@@ -22,6 +22,23 @@ export default function WithdrawModal() {
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
 
+  const handleClose = () => {
+    setIsWithdrawModalOpen(false);
+    setSuccessData(null);
+    setAccountNumber("");
+  };
+
+  useEffect(() => {
+    if (!isWithdrawModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isWithdrawModalOpen]);
+
   if (!isWithdrawModalOpen) return null;
 
   const currentBalance = user?.balance || 0;
@@ -83,22 +100,6 @@ export default function WithdrawModal() {
       setLoading(false);
     }
   };
-
-  const handleClose = () => {
-    setIsWithdrawModalOpen(false);
-    setSuccessData(null);
-    setAccountNumber("");
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <div

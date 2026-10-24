@@ -105,22 +105,25 @@ export const useUserStore = create<UserStoreState>((set, get) => ({
       return;
     }
     const saved = loadSavedProfileData() || {};
+    const isNewUser = Boolean(user.id && saved.id && user.id !== saved.id);
+    const baseSaved = isNewUser ? {} : saved;
+
     const mergedUser: UserProfile = {
-      id: user.id || saved.id || `usr_${Date.now()}`,
-      name: user.name || saved.name || "Player",
-      phone: user.phone || saved.phone || null,
-      email: user.email || saved.email || "player@777casino.com",
-      role: user.role || (saved.role as any) || "USER",
-      balance: typeof saved.balance === "number" ? saved.balance : (user.balance ?? 2000),
-      bonusBalance: typeof saved.bonusBalance === "number" ? saved.bonusBalance : (user.bonusBalance ?? 2000),
+      id: user.id || baseSaved.id || `usr_${Date.now()}`,
+      name: user.name || baseSaved.name || "Player",
+      phone: user.phone || baseSaved.phone || null,
+      email: user.email || baseSaved.email || "player@777casino.com",
+      role: user.role || (baseSaved.role as any) || "USER",
+      balance: typeof user.balance === "number" ? user.balance : (typeof baseSaved.balance === "number" ? baseSaved.balance : 2000),
+      bonusBalance: typeof user.bonusBalance === "number" ? user.bonusBalance : (typeof baseSaved.bonusBalance === "number" ? baseSaved.bonusBalance : 2000),
       currency: "BDT",
-      coins: typeof saved.coins === "number" ? saved.coins : (user.coins ?? 1500),
-      equippedFrame: saved.equippedFrame || user.equippedFrame || "frame-classic",
-      equippedGameSkin: saved.equippedGameSkin || user.equippedGameSkin || "skin-felt-green",
-      inventory: Array.isArray(saved.inventory)
-        ? saved.inventory
-        : (Array.isArray(user.inventory) ? user.inventory : ["frame-classic", "skin-felt-green"]),
-      lastDailyClaim: saved.lastDailyClaim || user.lastDailyClaim || null,
+      coins: typeof user.coins === "number" ? user.coins : (typeof baseSaved.coins === "number" ? baseSaved.coins : 1500),
+      equippedFrame: user.equippedFrame || baseSaved.equippedFrame || "frame-classic",
+      equippedGameSkin: user.equippedGameSkin || baseSaved.equippedGameSkin || "skin-felt-green",
+      inventory: Array.isArray(user.inventory)
+        ? user.inventory
+        : (Array.isArray(baseSaved.inventory) ? baseSaved.inventory : ["frame-classic", "skin-felt-green"]),
+      lastDailyClaim: user.lastDailyClaim || baseSaved.lastDailyClaim || null,
     };
 
     saveProfileData(mergedUser);

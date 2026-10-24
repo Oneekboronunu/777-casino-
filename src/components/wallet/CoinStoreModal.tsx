@@ -107,6 +107,17 @@ export default function CoinStoreModal() {
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!isCoinStoreOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsCoinStoreOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCoinStoreOpen, setIsCoinStoreOpen]);
+
   if (!isCoinStoreOpen) return null;
 
   const handleCopyAgentNumber = () => {
@@ -165,16 +176,6 @@ export default function CoinStoreModal() {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsCoinStoreOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setIsCoinStoreOpen]);
 
   return (
     <div

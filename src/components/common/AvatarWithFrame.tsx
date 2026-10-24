@@ -44,7 +44,10 @@ export default function AvatarWithFrame({
   className = "",
 }: AvatarWithFrameProps) {
   const config = sizeConfig[size] || sizeConfig.md;
-  const initial = name ? name[0].toUpperCase() : "P";
+  const initial =
+    typeof name === "string" && name.trim().length > 0
+      ? name.trim().charAt(0).toUpperCase()
+      : "P";
 
   const renderFrameOverlay = () => {
     switch (frameId) {
