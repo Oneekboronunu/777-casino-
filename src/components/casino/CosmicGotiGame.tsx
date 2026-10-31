@@ -6,28 +6,22 @@ import {
   Volume2,
   VolumeX,
   RotateCcw,
-  Sparkles,
-  Zap,
-  HelpCircle,
   X,
   ArrowLeft,
   Smile,
   MessageCircle,
-  Layers,
-  Palette,
-  Shield,
-  Trophy,
+  Users,
+  Bot,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import sound from "@/lib/sound";
 import { useUserStore } from "@/lib/store/useUserStore";
 
 // ==========================================
-// 1. GRAPH & DATA TYPES
+// 1. BOARD TYPES & GRAPH DEFINITIONS
 // ==========================================
-export type Player = 1 | 2; // 1: Red (Top / Solar), 2: Blue (Bottom / Void)
+export type Player = 1 | 2; // 1: Red (Top / Opponent), 2: Blue (Bottom / You)
 export type BoardMode = "NEXUS_FORTS" | "CENTRAL_MATRIX";
-export type ThemeMode = "WOOD" | "COSMIC";
 
 export interface BoardNode {
   id: number;
@@ -42,8 +36,6 @@ export interface MoveStep {
   from: number;
   to: number;
   captured?: number;
-  isSlipstream?: boolean;
-  isSingularityLeap?: boolean;
 }
 
 interface Particle {
@@ -248,11 +240,10 @@ const QUICK_EMOJIS = [
 // 2. MAIN COMPONENT
 // ==========================================
 export default function CosmicGotiGame() {
-  const { user, updateBalance, showNotification } = useUserStore();
+  const { user } = useUserStore();
 
   // Settings & Modes
   const [boardMode, setBoardMode] = useState<BoardMode>("NEXUS_FORTS");
-  const [theme, setTheme] = useState<ThemeMode>("WOOD"); // Default to clean Wood style matching reference!
   const [gameMode, setGameMode] = useState<"AI" | "PVP">("AI");
 
   // State
@@ -270,36 +261,20 @@ export default function CosmicGotiGame() {
   const [p1Captured, setP1Captured] = useState(0); // By Opponent
   const [p2Captured, setP2Captured] = useState(0); // By You
 
-  // Anti-Gravity God Mode
-  const [isGodMode, setIsGodMode] = useState(false);
-  const [godStreak, setGodStreak] = useState(0);
-  const [godTurnsLeft, setGodTurnsLeft] = useState(0);
-
   // Audio & Speech bubble
   const [isMuted, setIsMuted] = useState(sound.getIsMuted());
   const [activeSpeech, setActiveSpeech] = useState<string>("Nice Move.");
   const [showQuickSheet, setShowQuickSheet] = useState(false);
-  const [showRulesModal, setShowRulesModal] = useState(false);
 
   // Canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
 
-  // Count remaining beads
-  const redCount = board.filter((p) => p === 1).length;
-  const blueCount = board.filter((p) => p === 2).length;
-
   // Toggle Sound
   const toggleSound = () => {
     const next = sound.toggleMute();
     setIsMuted(next);
-  };
-
-  // Toggle Theme
-  const toggleTheme = () => {
-    sound.playChipClick();
-    setTheme((t) => (t === "WOOD" ? "COSMIC" : "WOOD"));
   };
 
   // Switch Board Mode
@@ -314,12 +289,19 @@ export default function CosmicGotiGame() {
     setWinner(null);
     setP1Captured(0);
     setP2Captured(0);
-    setIsGodMode(false);
-    setGodStreak(0);
+    setTurn(2);
+  };
+
+  // Toggle Game Mode (Vs Computer AI or Pass & Play)
+  const toggleGameMode = () => {
+    sound.playChipClick();
+    const next = gameMode === "AI" ? "PVP" : "AI";
+    setGameMode(next);
+    restartMatch();
   };
 
   // ==========================================
-  // 3. MOVE COMPUTATION
+  // 3. MOVE COMPUTATION (Traditional Bead 12)
   // ==========================================
   const getMovesForNode = useCallback(
     (nodeId: number, currentBoard: (Player | null)[], currentPlayer: Player): MoveStep[] => {
@@ -327,35 +309,14 @@ export default function CosmicGotiGame() {
       const node = nodes[nodeId];
       if (!node || currentBoard[nodeId] !== currentPlayer) return moves;
 
-      // Regular 1-step slide
+      // Regular 1-step slide along connecting line
       for (const nbrId of node.neighbors) {
         if (currentBoard[nbrId] === null) {
           moves.push({ from: nodeId, to: nbrId });
         }
       }
 
-      // God Mode: Cosmic Slipstream (Slide 2 empty spaces)
-      if (isGodMode) {
-        for (const nbrId of node.neighbors) {
-          if (currentBoard[nbrId] === null) {
-            const nbrNode = nodes[nbrId];
-            const dRow = nbrNode.row - node.row;
-            const dCol = nbrNode.col - node.col;
-            for (const secondNbrId of nbrNode.neighbors) {
-              const secondNode = nodes[secondNbrId];
-              if (
-                secondNode.row - nbrNode.row === dRow &&
-                secondNode.col - nbrNode.col === dCol &&
-                currentBoard[secondNbrId] === null
-              ) {
-                moves.push({ from: nodeId, to: secondNbrId, isSlipstream: true });
-              }
-            }
-          }
-        }
-      }
-
-      // Traditional Capture Jump
+      // Traditional Capture Jump along connecting line
       for (const oppId of node.neighbors) {
         const occupant = currentBoard[oppId];
         if (occupant !== null && occupant !== currentPlayer) {
@@ -378,7 +339,7 @@ export default function CosmicGotiGame() {
 
       return moves;
     },
-    [nodes, isGodMode]
+    [nodes]
   );
 
   const getAllPlayerMoves = useCallback(
@@ -401,18 +362,18 @@ export default function CosmicGotiGame() {
     const px = nx * canvas.width;
     const py = ny * canvas.height;
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 24; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 4.5;
+      const speed = 2 + Math.random() * 3.5;
       particlesRef.current.push({
         x: px,
         y: py,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         color,
-        size: 3 + Math.random() * 3,
+        size: 2.5 + Math.random() * 2.5,
         life: 0,
-        maxLife: 20 + Math.floor(Math.random() * 20),
+        maxLife: 18 + Math.floor(Math.random() * 15),
         alpha: 1,
       });
     }
@@ -437,7 +398,6 @@ export default function CosmicGotiGame() {
 
       if (player === 2) {
         setP2Captured((s) => s + 1);
-        setGodStreak((st) => Math.min(st + 40, 100));
       } else {
         setP1Captured((s) => s + 1);
       }
@@ -488,89 +448,50 @@ export default function CosmicGotiGame() {
       return;
     }
 
-    // God mode turns countdown
-    if (isGodMode && justMovedPlayer === 2) {
-      if (godTurnsLeft <= 1) {
-        setIsGodMode(false);
-      } else {
-        setGodTurnsLeft((t) => t - 1);
-      }
-    }
-
     setTurn(nextPlayer);
   };
 
-  // Activate Anti-Gravity God Mode
-  const triggerGodMode = () => {
-    sound.playGodMode();
-    setIsGodMode(true);
-    setGodTurnsLeft(3);
-    setGodStreak(0);
-    setActiveSpeech("GOD MODE: Zero-G! 🛸");
-    spawnParticles(0.5, 0.5, "#FFDE59");
-  };
-
-  const handleGameOver = (winningPlayer: Player) => {
-    setWinner(winningPlayer);
-    sound.playWin();
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.6 },
-    });
-  };
-
-  // AI Turn Handling
-  useEffect(() => {
-    if (gameMode === "AI" && turn === 1 && !winner && !isAiThinking) {
-      setIsAiThinking(true);
-      const timer = setTimeout(() => {
-        const moves = getAllPlayerMoves(1, board);
-        if (moves.length === 0) {
-          setIsAiThinking(false);
-          handleGameOver(2);
-          return;
-        }
-
-        // AI Priority: Captures first
-        moves.sort((a, b) => {
-          const capA = a.captured !== undefined ? 50 : 0;
-          const capB = b.captured !== undefined ? 50 : 0;
-          return capB - capA;
-        });
-
-        executeMove(moves[0]);
-        setIsAiThinking(false);
-      }, 700);
-
-      return () => clearTimeout(timer);
+  const handleGameOver = (winPlayer: Player) => {
+    setWinner(winPlayer);
+    if (winPlayer === 2) {
+      sound.playWin();
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      setActiveSpeech("You Won! 🎉");
+    } else {
+      sound.playLoss();
+      setActiveSpeech("Well Played! 🤝");
     }
-  }, [turn, gameMode, winner, board, isAiThinking]);
+  };
 
-  // Restart match
   const restartMatch = () => {
     sound.playChipClick();
-    const newBoard = getInitialBoardState(boardMode, nodes);
-    setBoard(newBoard);
-    setTurn(2); // "You" starts
+    const newNodes =
+      boardMode === "NEXUS_FORTS" ? buildNexusFortsGraph() : buildCentralMatrixGraph();
+    setNodes(newNodes);
+    setBoard(getInitialBoardState(boardMode, newNodes));
     setSelectedNode(null);
     setValidMoves([]);
     setWinner(null);
     setP1Captured(0);
     setP2Captured(0);
-    setIsGodMode(false);
-    setGodStreak(0);
-    setActiveSpeech("Good Luck! 🍀");
+    setTurn(2);
+    setActiveSpeech("Good Luck!");
   };
 
-  // Node Click
+  // Node Click Handler
   const handleNodeClick = (nodeId: number) => {
-    if (winner || (gameMode === "AI" && turn === 1)) return;
+    if (winner) return;
+    if (gameMode === "AI" && turn === 1) return; // Computer's turn
 
-    const occupant = board[nodeId];
+    // If destination clicked
+    const move = validMoves.find((m) => m.to === nodeId);
+    if (move) {
+      executeMove(move);
+      return;
+    }
 
-    // Select piece
-    if (occupant === turn) {
+    // If clicking own piece
+    if (board[nodeId] === turn) {
       sound.playChipClick();
       setSelectedNode(nodeId);
       const moves = getMovesForNode(nodeId, board, turn);
@@ -578,20 +499,53 @@ export default function CosmicGotiGame() {
       return;
     }
 
-    // Move to destination
-    if (selectedNode !== null) {
-      const match = validMoves.find((m) => m.to === nodeId);
-      if (match) {
-        executeMove(match);
-      } else {
-        setSelectedNode(null);
-        setValidMoves([]);
-      }
-    }
+    // Deselect if clicking elsewhere
+    setSelectedNode(null);
+    setValidMoves([]);
   };
 
+  // Computer AI Turn Logic
+  useEffect(() => {
+    if (gameMode !== "AI" || turn !== 1 || winner) return;
+
+    setIsAiThinking(true);
+    const timer = setTimeout(() => {
+      const allMoves = getAllPlayerMoves(1, board);
+      if (allMoves.length === 0) {
+        setIsAiThinking(false);
+        handleGameOver(2);
+        return;
+      }
+
+      // 1. Prioritize capturing moves
+      const captureMoves = allMoves.filter((m) => m.captured !== undefined);
+      let chosenMove: MoveStep;
+
+      if (captureMoves.length > 0) {
+        chosenMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+      } else {
+        // 2. Prefer moves that advance toward opponent
+        const forwardMoves = allMoves.filter((m) => {
+          const fromNode = nodes[m.from];
+          const toNode = nodes[m.to];
+          return toNode.row > fromNode.row;
+        });
+        if (forwardMoves.length > 0 && Math.random() < 0.7) {
+          chosenMove = forwardMoves[Math.floor(Math.random() * forwardMoves.length)];
+        } else {
+          chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+        }
+      }
+
+      executeMove(chosenMove);
+      setIsAiThinking(false);
+    }, 550);
+
+    return () => clearTimeout(timer);
+  }, [turn, gameMode, winner, board, nodes, getAllPlayerMoves]);
+
   // ==========================================
-  // 4. 60FPS HIGH-DPI CANVAS RENDER LOOP
+  // 4. CANVAS RENDERING (100% Traditional Wood Style)
   // ==========================================
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -604,45 +558,13 @@ export default function CosmicGotiGame() {
       const h = canvas.height;
 
       ctx.clearRect(0, 0, w, h);
-
-      // Background Rendering
-      if (theme === "WOOD") {
-        // Authentic Smooth Warm Woodgrain (Matching Reference Picture 2 & 3)
-        const woodGrad = ctx.createLinearGradient(0, 0, w, h);
-        woodGrad.addColorStop(0, "#E8BA82");
-        woodGrad.addColorStop(0.5, "#D8A368");
-        woodGrad.addColorStop(1, "#CA9054");
-        ctx.fillStyle = woodGrad;
-        ctx.fillRect(0, 0, w, h);
-
-        // Subtle wood grain lines
-        ctx.strokeStyle = "rgba(160, 95, 35, 0.12)";
-        ctx.lineWidth = 1;
-        for (let i = 0; i < h; i += 18) {
-          ctx.beginPath();
-          ctx.moveTo(0, i);
-          ctx.bezierCurveTo(w * 0.3, i + 5, w * 0.7, i - 5, w, i);
-          ctx.stroke();
-        }
-      } else {
-        // Cosmic Nebula
-        const cosmicGrad = ctx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, w * 0.7);
-        cosmicGrad.addColorStop(0, "#1F0A2E");
-        cosmicGrad.addColorStop(0.5, "#10041B");
-        cosmicGrad.addColorStop(1, "#06010D");
-        ctx.fillStyle = cosmicGrad;
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // God Mode 3D Tilt perspective transform
       ctx.save();
-      if (isGodMode) {
-        ctx.translate(w / 2, h / 2);
-        ctx.scale(1.0, 0.94);
-        ctx.translate(-w / 2, -h / 2);
-      }
 
-      // 1. Grid Lines (Matching authentic crimson lines in reference picture)
+      // 1. Draw Connecting Grid Lines (Deep crimson / maroon matching reference)
+      ctx.strokeStyle = "rgba(139, 30, 30, 0.88)";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+
       nodes.forEach((n) => {
         const x1 = n.nx * w;
         const y1 = n.ny * h;
@@ -656,19 +578,12 @@ export default function CosmicGotiGame() {
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
-            ctx.strokeStyle =
-              theme === "WOOD"
-                ? "rgba(139, 30, 30, 0.85)" // Deep crimson lines from screenshot
-                : isGodMode
-                ? "rgba(255, 222, 89, 0.8)"
-                : "rgba(212, 175, 55, 0.45)";
-            ctx.lineWidth = theme === "WOOD" ? 2.8 : 2;
             ctx.stroke();
           }
         });
       });
 
-      // 2. Nodes / Intersections
+      // 2. Nodes / Intersections (small maroon junction points)
       nodes.forEach((n) => {
         const px = n.nx * w;
         const py = n.ny * h;
@@ -676,14 +591,8 @@ export default function CosmicGotiGame() {
         const isValidDest = validMoves.some((m) => m.to === n.id);
 
         ctx.beginPath();
-        ctx.arc(px, py, isSelected ? 6.5 : 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = isValidDest
-          ? "#10B981"
-          : isSelected
-          ? "#FFDE59"
-          : theme === "WOOD"
-          ? "#8B1E1E"
-          : "#C084FC";
+        ctx.arc(px, py, isSelected ? 6 : 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = isValidDest ? "#10B981" : isSelected ? "#FFDE59" : "#8B1E1E";
         ctx.fill();
 
         // Valid move destination ring
@@ -696,7 +605,7 @@ export default function CosmicGotiGame() {
         }
       });
 
-      // 3. Render 3D Beads / Gotis (Red at top, Blue at bottom matching reference)
+      // 3. Render 3D Spherical Beads (Red at top, Blue at bottom matching reference)
       const beadRadius = Math.min(w, h) * 0.046;
 
       nodes.forEach((n) => {
@@ -707,13 +616,9 @@ export default function CosmicGotiGame() {
         const cy = n.ny * h;
         const isSelected = selectedNode === n.id;
 
-        // Anti-Gravity float height
-        const floatZ = isGodMode ? 10 + Math.sin(Date.now() * 0.006 + n.id) * 2.5 : 0;
-        const py = cy - floatZ;
-
         // Drop Shadow
         ctx.beginPath();
-        ctx.ellipse(cx, cy + 3 + floatZ * 0.8, beadRadius * 0.9, beadRadius * 0.45, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy + 3.5, beadRadius * 0.9, beadRadius * 0.45, 0, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
         ctx.fill();
 
@@ -722,17 +627,17 @@ export default function CosmicGotiGame() {
           ctx.strokeStyle = "#FFDE59";
           ctx.lineWidth = 3.5;
           ctx.beginPath();
-          ctx.arc(cx, py, beadRadius * 1.25, 0, Math.PI * 2);
+          ctx.arc(cx, cy, beadRadius * 1.25, 0, Math.PI * 2);
           ctx.stroke();
         }
 
-        // Spherical 3D Bead Gradient
+        // Spherical 3D Bead Radial Gradient
         const grad = ctx.createRadialGradient(
           cx - beadRadius * 0.35,
-          py - beadRadius * 0.35,
+          cy - beadRadius * 0.35,
           beadRadius * 0.1,
           cx,
-          py,
+          cy,
           beadRadius
         );
 
@@ -752,14 +657,14 @@ export default function CosmicGotiGame() {
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(cx, py, beadRadius, 0, Math.PI * 2);
+        ctx.arc(cx, cy, beadRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Rim highlight ring
+        // Subtle specular rim highlight
         ctx.strokeStyle = piece === 1 ? "#FFCDD2" : "#BBDEFB";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(cx, py, beadRadius, 0, Math.PI * 2);
+        ctx.arc(cx, cy, beadRadius, 0, Math.PI * 2);
         ctx.stroke();
       });
 
@@ -791,31 +696,31 @@ export default function CosmicGotiGame() {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [nodes, board, selectedNode, validMoves, theme, isGodMode]);
+  }, [nodes, board, selectedNode, validMoves]);
 
   return (
     <div className="w-full h-[100dvh] max-h-screen overflow-hidden bg-[#D8A368] text-gray-900 flex flex-col items-center justify-between select-none relative font-sans">
       {/* ==========================================
-          TOP BAR: OPPONENT PROFILE & GAME CONTROLS (Screenshot 2 Style)
+          TOP BAR: OPPONENT CAPSULE & GAME CONTROLS (Reference Panel 2 Style)
           ========================================== */}
       <div className="w-full max-w-md px-3 pt-2 pb-1 flex items-center justify-between z-10">
-        {/* Back Button */}
+        {/* Back Button (Circular white/cream button matching reference) */}
         <Link
           href="/"
-          className="w-9 h-9 rounded-full bg-white/90 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition active:scale-95 border border-amber-800/20"
+          className="w-9 h-9 rounded-full bg-white/95 hover:bg-white text-gray-800 shadow-md flex items-center justify-center transition active:scale-95 border border-amber-900/20"
         >
           <ArrowLeft className="w-5 h-5 text-gray-700" />
         </Link>
 
         {/* Center: Opponent Capsule (Top Player) */}
-        <div className="flex items-center space-x-2 bg-[#F3D7B0]/90 border border-amber-900/30 px-3 py-1 rounded-full shadow-sm">
+        <div className="flex items-center space-x-2 bg-[#F3D7B0]/95 border border-amber-900/30 px-3.5 py-1 rounded-full shadow-sm">
           {/* Avatar circle */}
           <div className="w-8 h-8 rounded-full bg-gray-900 border-2 border-red-500 flex items-center justify-center text-sm shadow">
             🥷
           </div>
           <div>
             <div className="text-[11px] font-black text-gray-900 leading-none">
-              {gameMode === "AI" ? "Cosmic AI" : "Player 1"}
+              {gameMode === "AI" ? "Opponent" : "Player 1"}
             </div>
             <div className="text-[9px] text-gray-600 font-bold leading-tight">
               Points 14000
@@ -828,79 +733,71 @@ export default function CosmicGotiGame() {
           </div>
         </div>
 
-        {/* Right Controls: Sound, Theme, Reset */}
+        {/* Right Controls: Restart & Sound */}
         <div className="flex items-center space-x-1.5">
           <button
-            onClick={toggleTheme}
-            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-sm flex items-center justify-center transition border border-amber-800/20"
-            title="Toggle Theme"
-          >
-            <Palette className="w-4 h-4" />
-          </button>
-          <button
             onClick={restartMatch}
-            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-sm flex items-center justify-center transition border border-amber-800/20"
+            className="w-8 h-8 rounded-full bg-white/95 hover:bg-white text-gray-700 shadow-sm flex items-center justify-center transition border border-amber-900/20"
             title="Restart Match"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
           <button
             onClick={toggleSound}
-            className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-sm flex items-center justify-center transition border border-amber-800/20"
+            className="w-8 h-8 rounded-full bg-white/95 hover:bg-white text-gray-700 shadow-sm flex items-center justify-center transition border border-amber-900/20"
+            title={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-600" /> : <Volume2 className="w-4 h-4 text-gray-700" />}
           </button>
         </div>
       </div>
 
-      {/* Mode Pill Indicator (Forts 37 vs Matrix 25) */}
+      {/* Mode Switches: Forts / Matrix & AI / Pass & Play */}
       <div className="flex items-center space-x-2 py-0.5">
         <button
           onClick={() => handleBoardModeChange("NEXUS_FORTS")}
-          className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition ${
+          className={`px-3 py-1 rounded-full text-[11px] font-black transition ${
             boardMode === "NEXUS_FORTS"
-              ? "bg-amber-900 text-white shadow"
-              : "bg-white/60 text-amber-950 hover:bg-white/80"
+              ? "bg-[#6E3C0F] text-amber-100 shadow"
+              : "bg-white/70 text-[#6E3C0F] hover:bg-white"
           }`}
         >
           Forts (37 Nodes)
         </button>
         <button
           onClick={() => handleBoardModeChange("CENTRAL_MATRIX")}
-          className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition ${
+          className={`px-3 py-1 rounded-full text-[11px] font-black transition ${
             boardMode === "CENTRAL_MATRIX"
-              ? "bg-amber-900 text-white shadow"
-              : "bg-white/60 text-amber-950 hover:bg-white/80"
+              ? "bg-[#6E3C0F] text-amber-100 shadow"
+              : "bg-white/70 text-[#6E3C0F] hover:bg-white"
           }`}
         >
           Matrix (25 Nodes)
         </button>
-
-        {/* God Mode Streak Mini Badge */}
-        {godStreak >= 100 ? (
-          <button
-            onClick={triggerGodMode}
-            className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-red-600 text-white text-[10px] font-black animate-pulse shadow flex items-center space-x-1"
-          >
-            <Zap className="w-3 h-3" />
-            <span>GOD MODE READY!</span>
-          </button>
-        ) : isGodMode ? (
-          <span className="px-2.5 py-0.5 rounded-full bg-purple-700 text-white text-[10px] font-black shadow animate-bounce">
-            ZERO-G ACTIVE ({godTurnsLeft})
-          </span>
-        ) : (
-          <span className="text-[10px] font-black text-amber-900">
-            Streak: {godStreak}%
-          </span>
-        )}
+        <button
+          onClick={toggleGameMode}
+          className="px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#6E3C0F] text-[11px] font-black transition flex items-center space-x-1 shadow-sm"
+          title="Switch AI / 2 Player"
+        >
+          {gameMode === "AI" ? (
+            <>
+              <Bot className="w-3.5 h-3.5 text-red-700" />
+              <span>Vs AI</span>
+            </>
+          ) : (
+            <>
+              <Users className="w-3.5 h-3.5 text-blue-700" />
+              <span>2P</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* ==========================================
           CENTER STAGE: MOBILE ADAPTIVE 60FPS BOARD CANVAS
           ========================================== */}
       <div className="flex-1 w-full max-w-md flex items-center justify-center p-2 relative">
-        <div className="relative w-full h-full max-h-[74vh] aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-950/25 flex items-center justify-center bg-[#D8A368]">
+        <div className="relative w-full h-full max-h-[74vh] aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-[#8C5824] flex items-center justify-center bg-[#D8A368]">
           <canvas
             ref={canvasRef}
             width={600}
@@ -928,18 +825,25 @@ export default function CosmicGotiGame() {
             className="w-full h-full object-contain cursor-pointer touch-none"
           />
 
+          {/* AI Thinking Indicator */}
+          {isAiThinking && (
+            <div className="absolute top-3 bg-black/60 backdrop-blur-xs text-amber-200 text-[10px] font-bold px-3 py-1 rounded-full shadow animate-pulse">
+              Opponent thinking...
+            </div>
+          )}
+
           {/* Victory Overlay */}
           {winner && (
-            <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 z-30 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center space-y-3 z-30 animate-in fade-in duration-300">
               <div className="text-4xl animate-bounce">
-                {winner === 2 ? "👑" : "💀"}
+                {winner === 2 ? "👑" : "🏆"}
               </div>
               <h3 className="text-2xl font-black text-[#FFDE59] uppercase tracking-wider">
                 {winner === 2 ? "YOU WON!" : "OPPONENT WON!"}
               </h3>
               <p className="text-xs text-gray-200">
                 {winner === 2
-                  ? "Brilliant strategy! All opponent beads conquered!"
+                  ? "Brilliant match! All opponent beads conquered!"
                   : "Good match! Try a rematch to claim victory!"}
               </p>
               <button
@@ -954,10 +858,10 @@ export default function CosmicGotiGame() {
       </div>
 
       {/* ==========================================
-          BOTTOM BAR: YOU PROFILE & CHAT TRIGGERS (Screenshot 2, 3, 4 Style)
+          BOTTOM BAR: YOU PROFILE & CHAT TRIGGERS (Reference Panel 2, 3 Style)
           ========================================== */}
       <div className="w-full max-w-md px-4 pb-3 flex flex-col items-center space-y-1.5 z-10">
-        {/* Active Speech / Reaction Bubble (Matching Screenshot 3 "Nice Move.") */}
+        {/* Active Speech / Reaction Bubble (Matching Reference Panel 3 "Nice Move.") */}
         {activeSpeech && (
           <div className="px-4 py-1 bg-white/95 border border-amber-900/30 rounded-full shadow-md text-xs font-bold text-gray-800 animate-in fade-in slide-in-from-bottom-2 duration-200">
             {activeSpeech}
@@ -966,7 +870,7 @@ export default function CosmicGotiGame() {
 
         {/* Bottom Profile Bar */}
         <div className="w-full flex items-center justify-between">
-          {/* Left: Yellow Emoji Circle Button (Screenshot 2/3 style) */}
+          {/* Left: Yellow Emoji Circle Button (Panel 2/3 style) */}
           <button
             onClick={() => {
               sound.playChipClick();
@@ -980,13 +884,13 @@ export default function CosmicGotiGame() {
 
           {/* Center: You Capsule (Bottom Player) */}
           <div className="flex items-center space-x-2 bg-[#F3D7B0]/95 border border-amber-900/30 px-4 py-1.5 rounded-full shadow-md">
-            {/* Avatar circle (Green leaf badge style from picture) */}
+            {/* Avatar circle (Green leaf hero style from picture) */}
             <div className="w-8 h-8 rounded-full bg-emerald-600 border-2 border-blue-600 flex items-center justify-center text-sm shadow text-white font-black">
               🦸
             </div>
             <div>
               <div className="text-[11px] font-black text-gray-900 leading-none">
-                You
+                {user?.name || "You"}
               </div>
               <div className="text-[9px] text-gray-600 font-bold leading-tight">
                 Points 17000
@@ -999,7 +903,7 @@ export default function CosmicGotiGame() {
             </div>
           </div>
 
-          {/* Right: Blue Quick Chat Speech Bubble Button (Screenshot 2/3 style) */}
+          {/* Right: Blue Quick Chat Speech Bubble Button (Panel 2/3 style) */}
           <button
             onClick={() => {
               sound.playChipClick();
@@ -1042,6 +946,13 @@ export default function CosmicGotiGame() {
                     sound.playChipClick();
                     setActiveSpeech(phrase);
                     setShowQuickSheet(false);
+                    // AI reply reaction
+                    if (gameMode === "AI" && Math.random() < 0.6) {
+                      setTimeout(() => {
+                        const aiReplies = ["Good Luck", "Nice Move.", "Thanks!", "😎", "Rematch?"];
+                        setActiveSpeech(aiReplies[Math.floor(Math.random() * aiReplies.length)]);
+                      }, 1200);
+                    }
                   }}
                   className="py-2 px-1 rounded-xl bg-[#F4CA78] hover:bg-[#E8B85A] active:scale-95 text-[10px] font-black text-[#5B340B] shadow-sm transition text-center truncate border border-[#DBA441]"
                 >

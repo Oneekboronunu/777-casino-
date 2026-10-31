@@ -41,13 +41,13 @@ export default function HomePage() {
 
   const casinoGames = [
     {
-      title: "24 Goti: Anti-Gravity",
-      desc: "Cosmic Bead 12 with Zero-G 3D tilt, slipstream and singularity leaps",
+      title: "24 Goti (Bead 12)",
+      desc: "Traditional South Asian board game with forts, multi-jumps, and live chat",
       href: "/casino/goti",
-      icon: Zap,
-      color: "from-amber-600/30 to-purple-600/10",
-      accent: "text-[#FF7A00]",
-      badge: "GOD MODE",
+      icon: Layers,
+      color: "from-amber-600/30 to-amber-900/10",
+      accent: "text-amber-500",
+      badge: "CLASSIC",
     },
     {
       title: "Aviator Crash",

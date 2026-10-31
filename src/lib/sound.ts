@@ -127,6 +127,29 @@ class SoundEngine {
     } catch {}
   }
 
+  // 3b. Loss / Defeat tone
+  public playLoss() {
+    try {
+      if (this.isMuted) return;
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const notes = [392.00, 349.23, 311.13, 261.63]; // Descending minor
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq, now + i * 0.12);
+        gain.gain.setValueAtTime(0.18, now + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.12);
+        osc.stop(now + i * 0.12 + 0.35);
+      });
+    } catch {}
+  }
+
   // 4. Aviator Crash / Explosion
   public playCrash() {
     try {
@@ -339,7 +362,7 @@ class SoundEngine {
   }
 
 
-  // 11. Anti-Gravity God Mode Trigger
+  // 11. Bonus Sound Trigger
   public playGodMode() {
     try {
       if (this.isMuted) return;
@@ -375,7 +398,7 @@ class SoundEngine {
     } catch {}
   }
 
-  // 12. Cosmic Stardust Shatter (Capture)
+  // 12. Traditional Bead Capture Shatter
   public playCosmicShatter() {
     try {
       if (this.isMuted) return;
@@ -419,7 +442,7 @@ class SoundEngine {
     } catch {}
   }
 
-  // 13. Cosmic Goti Slide
+  // 13. Traditional Bead Slide
   public playCosmicSlide() {
     try {
       if (this.isMuted) return;
@@ -440,7 +463,7 @@ class SoundEngine {
     } catch {}
   }
 
-  // 14. Singularity Leap (Warp jump)
+  // 14. Chain Jump
   public playSingularityLeap() {
     try {
       if (this.isMuted) return;
