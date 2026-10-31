@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Layers,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";

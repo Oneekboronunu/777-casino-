@@ -19,6 +19,7 @@ import {
   X,
   Check,
   Heart,
+  Zap,
 } from "lucide-react";
 import LiveMatchBanner from "@/components/sports/LiveMatchBanner";
 import { useUserStore } from "@/lib/store/useUserStore";
@@ -39,6 +40,15 @@ export default function HomePage() {
   }, []);
 
   const casinoGames = [
+    {
+      title: "24 Goti: Anti-Gravity",
+      desc: "Cosmic Bead 12 with Zero-G 3D tilt, slipstream and singularity leaps",
+      href: "/casino/goti",
+      icon: Zap,
+      color: "from-amber-600/30 to-purple-600/10",
+      accent: "text-[#FF7A00]",
+      badge: "GOD MODE",
+    },
     {
       title: "Aviator Crash",
       desc: "Retro flight rocket curve with dual cashout consoles",

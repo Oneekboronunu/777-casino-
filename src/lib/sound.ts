@@ -338,6 +338,129 @@ class SoundEngine {
     } catch {}
   }
 
+
+  // 11. Anti-Gravity God Mode Trigger
+  public playGodMode() {
+    try {
+      if (this.isMuted) return;
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const subOsc = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      subOsc.type = "sine";
+      subOsc.frequency.setValueAtTime(80, now);
+      subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.6);
+      subGain.gain.setValueAtTime(0.4, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      subOsc.connect(subGain);
+      subGain.connect(ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + 0.6);
+
+      [330, 440, 554.37, 659.25, 880, 1108.7].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq * 0.8, now + i * 0.05);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + i * 0.05 + 0.4);
+        gain.gain.setValueAtTime(0.18, now + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.5);
+      });
+    } catch {}
+  }
+
+  // 12. Cosmic Stardust Shatter (Capture)
+  public playCosmicShatter() {
+    try {
+      if (this.isMuted) return;
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const bufferSize = ctx.sampleRate * 0.15;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(2400, now);
+      filter.Q.value = 3;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start(now);
+      noise.stop(now + 0.15);
+
+      [1320, 1760, 2200].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + idx * 0.03);
+        g.gain.setValueAtTime(0.2, now + idx * 0.03);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.03 + 0.2);
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start(now + idx * 0.03);
+        osc.stop(now + idx * 0.03 + 0.2);
+      });
+    } catch {}
+  }
+
+  // 13. Cosmic Goti Slide
+  public playCosmicSlide() {
+    try {
+      if (this.isMuted) return;
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.exponentialRampToValueAtTime(950, now + 0.08);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch {}
+  }
+
+  // 14. Singularity Leap (Warp jump)
+  public playSingularityLeap() {
+    try {
+      if (this.isMuted) return;
+      const ctx = this.initCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(1600, now + 0.12);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch {}
+  }
+
   // 10. Coin Flip Whir
   public playCoinFlip() {
     try {

@@ -17,6 +17,7 @@ import {
   Award,
   Star,
   Heart,
+  Zap,
 } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 
@@ -27,6 +28,7 @@ export default function Sidebar() {
 
   const casinoGames = [
     { name: "Aviator Crash", href: "/casino/aviator", icon: Flame, badge: "HOT", color: "text-[#BA2649]" },
+    { name: "24 Goti Cosmic", href: "/casino/goti", icon: Zap, badge: "GOD MODE", color: "text-[#FF7A00]" },
     { name: "24/7 Hearts", href: "/casino/hearts", icon: Heart, badge: "4P PRO", color: "text-red-500" },
     { name: "Carrom Board", href: "/casino/carrom", icon: Layers, badge: "NEW", color: "text-[#FFDE59]" },
     { name: "Roulette 3D", href: "/casino/roulette", icon: Dices, badge: "PRO", color: "text-[#0D9488]" },
