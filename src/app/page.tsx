@@ -16,12 +16,36 @@ import {
   Zap,
   ArrowRight,
 } from "lucide-react";
-import SportsBettingLayout from "@/components/sports/SportsBettingLayout";
-import FlashscoreSportsView from "@/components/sports/FlashscoreSportsView";
+import dynamic from "next/dynamic";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
 import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
 import { Radio, TableProperties } from "lucide-react";
+
+const FlashscoreSportsView = dynamic(
+  () => import("@/components/sports/FlashscoreSportsView"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 flex items-center justify-center bg-[#0B0F15] text-[#95D600] font-mono text-xs">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#95D600] animate-ping mr-2.5" />
+        Loading Live Sports & Probabilities...
+      </div>
+    ),
+  }
+);
+
+const SportsBettingLayout = dynamic(
+  () => import("@/components/sports/SportsBettingLayout"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 flex items-center justify-center bg-[#0B0F15] text-gray-400 font-mono text-xs">
+        Loading Sports Matrix...
+      </div>
+    ),
+  }
+);
 
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();

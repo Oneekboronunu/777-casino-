@@ -1,10 +1,34 @@
 "use client";
 
 import React, { useState } from "react";
-import FlashscoreSportsView from "@/components/sports/FlashscoreSportsView";
-import SportsBettingLayout from "@/components/sports/SportsBettingLayout";
+import dynamic from "next/dynamic";
 import { TableProperties, Activity } from "lucide-react";
 import sound from "@/lib/sound";
+
+const FlashscoreSportsView = dynamic(
+  () => import("@/components/sports/FlashscoreSportsView"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-96 flex items-center justify-center bg-[#0B0F15] text-[#95D600] font-mono text-xs">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#95D600] animate-ping mr-2.5" />
+        Loading Live Sports & Probabilities...
+      </div>
+    ),
+  }
+);
+
+const SportsBettingLayout = dynamic(
+  () => import("@/components/sports/SportsBettingLayout"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-96 flex items-center justify-center bg-[#0B0F15] text-gray-400 font-mono text-xs">
+        Loading Sports Matrix...
+      </div>
+    ),
+  }
+);
 
 export default function SportsbookPage() {
   const [viewMode, setViewMode] = useState<"FLASHSCORE" | "MATRIX">("FLASHSCORE");
