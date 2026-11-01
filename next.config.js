@@ -16,6 +16,14 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/casino/admin',
+        destination: '/admin',
+      },
+    ];
+  },
   async headers() {
     return [
       {
