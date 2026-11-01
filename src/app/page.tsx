@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import SportsBettingLayout from "@/components/sports/SportsBettingLayout";
 import ToffeeSportsView from "@/components/sports/ToffeeSportsView";
+import FlashscoreSportsView from "@/components/sports/FlashscoreSportsView";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
 import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
@@ -26,7 +27,7 @@ import { Radio, TableProperties } from "lucide-react";
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
   const [jackpotAmount, setJackpotAmount] = useState<number>(18452390);
-  const [sportsViewMode, setSportsViewMode] = useState<"TOFFEE" | "MATRIX">("TOFFEE");
+  const [sportsViewMode, setSportsViewMode] = useState<"FLASHSCORE" | "TOFFEE" | "MATRIX">("FLASHSCORE");
 
   // Progressive jackpot increment
   useEffect(() => {
@@ -156,22 +157,46 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. CORE SPORTS VISUALS (Toffee Live HD Stream or bet777 Matrix) */}
+      {/* 2. CORE SPORTS VISUALS (Flashscore Scores & Trading, Toffee Live HD, or bet777 Matrix) */}
       <section className="w-full">
         {/* Experience Switcher Bar */}
         <div className="w-full bg-[#0B0F16] border-b border-[#16202D] px-4 sm:px-8 py-2.5">
-          <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+          <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-gray-400 hidden sm:inline">
                 Sports Mode:
               </span>
-              <div className="flex items-center bg-[#131A24] p-1 rounded-xl border border-[#1E2938]">
+              <div className="flex items-center bg-[#131A24] p-1 rounded-xl border border-[#1E2938] overflow-x-auto scrollbar-none">
+                {/* Flashscore Mode */}
+                <button
+                  onClick={() => {
+                    sound.playChipClick();
+                    setSportsViewMode("FLASHSCORE");
+                  }}
+                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
+                    sportsViewMode === "FLASHSCORE"
+                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Activity
+                    className={`w-3.5 h-3.5 ${
+                      sportsViewMode === "FLASHSCORE" ? "text-black" : "text-[#95D600]"
+                    }`}
+                  />
+                  <span>Flashscore Scores & Trading</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
+                    NEW
+                  </span>
+                </button>
+
+                {/* Toffee Live Mode */}
                 <button
                   onClick={() => {
                     sound.playChipClick();
                     setSportsViewMode("TOFFEE");
                   }}
-                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
                     sportsViewMode === "TOFFEE"
                       ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
                       : "text-gray-400 hover:text-white"
@@ -182,39 +207,46 @@ export default function HomePage() {
                       sportsViewMode === "TOFFEE" ? "text-black animate-pulse" : "text-red-500"
                     }`}
                   />
-                  <span>Toffee Live Sports</span>
+                  <span>Toffee Live Stream</span>
                   <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
                     HD
                   </span>
                 </button>
 
+                {/* bet777 Matrix Mode */}
                 <button
                   onClick={() => {
                     sound.playChipClick();
                     setSportsViewMode("MATRIX");
                   }}
-                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
                     sportsViewMode === "MATRIX"
                       ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
                   <TableProperties className="w-3.5 h-3.5" />
-                  <span>bet777 Odds Matrix</span>
+                  <span>bet777 Matrix</span>
                 </button>
               </div>
             </div>
 
             <div className="flex items-center space-x-2 text-xs font-mono text-gray-400">
               <span className="w-2 h-2 rounded-full bg-[#95D600] animate-ping" />
-              <span className="hidden md:inline text-gray-300">Live Streaming Broadcasts:</span>
-              <span className="text-[#95D600] font-bold">T Sports & Sony Ten HD</span>
+              <span className="hidden md:inline text-gray-300">Live Match Tracking:</span>
+              <span className="text-[#95D600] font-bold">Flashscore Real-Time Probabilities</span>
             </div>
           </div>
         </div>
 
         {/* View Component */}
-        {sportsViewMode === "TOFFEE" ? <ToffeeSportsView /> : <SportsBettingLayout />}
+        {sportsViewMode === "FLASHSCORE" ? (
+          <FlashscoreSportsView />
+        ) : sportsViewMode === "TOFFEE" ? (
+          <ToffeeSportsView />
+        ) : (
+          <SportsBettingLayout />
+        )}
       </section>
 
       {/* 3. PROGRESSIVE GRAND JACKPOT TICKER */}
