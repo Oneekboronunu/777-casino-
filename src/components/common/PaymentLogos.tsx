@@ -8,16 +8,16 @@ interface LogoProps {
 
 // ==================== BKASH LOGO (Smooth & Seamless) ====================
 export function BKashLogo({ className = "", variant = "smooth", size = "md" }: LogoProps) {
-  const imgHeight = size === "sm" ? 22 : size === "lg" ? 36 : size === "xl" ? 44 : 28;
+  const imgHeight = size === "sm" ? 20 : size === "lg" ? 32 : size === "xl" ? 40 : 24;
 
   return (
-    <div className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}>
+    <div className={`inline-flex items-center justify-center bg-white rounded-xl px-2.5 py-1 shadow-sm flex-shrink-0 select-none ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/payments/bkash.png"
         alt="bKash"
         style={{ height: `${imgHeight}px` }}
-        className="w-auto max-w-full max-h-full object-contain filter drop-shadow-sm select-none"
+        className="w-auto max-w-full max-h-full object-contain select-none"
       />
     </div>
   );
@@ -25,16 +25,16 @@ export function BKashLogo({ className = "", variant = "smooth", size = "md" }: L
 
 // ==================== NAGAD LOGO (Smooth & Seamless) ====================
 export function NagadLogo({ className = "", variant = "smooth", size = "md" }: LogoProps) {
-  const imgHeight = size === "sm" ? 22 : size === "lg" ? 36 : size === "xl" ? 44 : 28;
+  const imgHeight = size === "sm" ? 20 : size === "lg" ? 32 : size === "xl" ? 40 : 24;
 
   return (
-    <div className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}>
+    <div className={`inline-flex items-center justify-center bg-white rounded-xl px-2.5 py-1 shadow-sm flex-shrink-0 select-none ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/payments/nagad.png"
         alt="Nagad"
         style={{ height: `${imgHeight}px` }}
-        className="w-auto max-w-full max-h-full object-contain filter drop-shadow-sm select-none"
+        className="w-auto max-w-full max-h-full object-contain select-none"
       />
     </div>
   );
@@ -42,16 +42,16 @@ export function NagadLogo({ className = "", variant = "smooth", size = "md" }: L
 
 // ==================== ROCKET LOGO (Smooth & Seamless) ====================
 export function RocketLogo({ className = "", variant = "smooth", size = "md" }: LogoProps) {
-  const imgHeight = size === "sm" ? 22 : size === "lg" ? 36 : size === "xl" ? 44 : 28;
+  const imgHeight = size === "sm" ? 20 : size === "lg" ? 32 : size === "xl" ? 40 : 24;
 
   return (
-    <div className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}>
+    <div className={`inline-flex items-center justify-center bg-[#8C3494] rounded-xl px-2.5 py-1 shadow-sm flex-shrink-0 select-none ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/payments/rocket.png"
         alt="DBBL Rocket"
         style={{ height: `${imgHeight}px` }}
-        className="w-auto max-w-full max-h-full object-contain filter drop-shadow-sm select-none"
+        className="w-auto max-w-full max-h-full object-contain select-none"
       />
     </div>
   );

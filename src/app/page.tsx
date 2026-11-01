@@ -17,13 +17,16 @@ import {
   ArrowRight,
 } from "lucide-react";
 import SportsBettingLayout from "@/components/sports/SportsBettingLayout";
+import ToffeeSportsView from "@/components/sports/ToffeeSportsView";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
 import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
+import { Radio, TableProperties } from "lucide-react";
 
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
   const [jackpotAmount, setJackpotAmount] = useState<number>(18452390);
+  const [sportsViewMode, setSportsViewMode] = useState<"TOFFEE" | "MATRIX">("TOFFEE");
 
   // Progressive jackpot increment
   useEffect(() => {
@@ -153,9 +156,65 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. CORE SPORTSBOOK 3-COLUMN VIEW (Matches Reference Screenshot) */}
+      {/* 2. CORE SPORTS VISUALS (Toffee Live HD Stream or bet777 Matrix) */}
       <section className="w-full">
-        <SportsBettingLayout />
+        {/* Experience Switcher Bar */}
+        <div className="w-full bg-[#0B0F16] border-b border-[#16202D] px-4 sm:px-8 py-2.5">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-gray-400 hidden sm:inline">
+                Sports Mode:
+              </span>
+              <div className="flex items-center bg-[#131A24] p-1 rounded-xl border border-[#1E2938]">
+                <button
+                  onClick={() => {
+                    sound.playChipClick();
+                    setSportsViewMode("TOFFEE");
+                  }}
+                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                    sportsViewMode === "TOFFEE"
+                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <Radio
+                    className={`w-3.5 h-3.5 ${
+                      sportsViewMode === "TOFFEE" ? "text-black animate-pulse" : "text-red-500"
+                    }`}
+                  />
+                  <span>Toffee Live Sports</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
+                    HD
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playChipClick();
+                    setSportsViewMode("MATRIX");
+                  }}
+                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                    sportsViewMode === "MATRIX"
+                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <TableProperties className="w-3.5 h-3.5" />
+                  <span>bet777 Odds Matrix</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs font-mono text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-[#95D600] animate-ping" />
+              <span className="hidden md:inline text-gray-300">Live Streaming Broadcasts:</span>
+              <span className="text-[#95D600] font-bold">T Sports & Sony Ten HD</span>
+            </div>
+          </div>
+        </div>
+
+        {/* View Component */}
+        {sportsViewMode === "TOFFEE" ? <ToffeeSportsView /> : <SportsBettingLayout />}
       </section>
 
       {/* 3. PROGRESSIVE GRAND JACKPOT TICKER */}
