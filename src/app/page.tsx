@@ -41,6 +41,15 @@ export default function HomePage() {
 
   const casinoGames = [
     {
+      title: "Spin to Win (Lucky Wheel)",
+      desc: "Luxury casino wheel with weighted probability, Jackpot rewards & live admin hub",
+      href: "/casino/wheel",
+      icon: Sparkles,
+      color: "from-purple-600/30 to-amber-600/10",
+      accent: "text-amber-400",
+      badge: "HOT",
+    },
+    {
       title: "24 Goti (Bead 12)",
       desc: "Traditional South Asian board game with forts, multi-jumps, and live chat",
       href: "/casino/goti",
