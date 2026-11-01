@@ -17,7 +17,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import SportsBettingLayout from "@/components/sports/SportsBettingLayout";
-import ToffeeSportsView from "@/components/sports/ToffeeSportsView";
 import FlashscoreSportsView from "@/components/sports/FlashscoreSportsView";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
@@ -27,7 +26,7 @@ import { Radio, TableProperties } from "lucide-react";
 export default function HomePage() {
   const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
   const [jackpotAmount, setJackpotAmount] = useState<number>(18452390);
-  const [sportsViewMode, setSportsViewMode] = useState<"FLASHSCORE" | "TOFFEE" | "MATRIX">("FLASHSCORE");
+  const [sportsViewMode, setSportsViewMode] = useState<"FLASHSCORE" | "MATRIX">("FLASHSCORE");
 
   // Progressive jackpot increment
   useEffect(() => {
@@ -157,7 +156,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. CORE SPORTS VISUALS (Flashscore Scores & Trading, Toffee Live HD, or bet777 Matrix) */}
+      {/* 2. CORE SPORTS VISUALS (Flashscore Scores & Trading, or bet777 Matrix) */}
       <section className="w-full">
         {/* Experience Switcher Bar */}
         <div className="w-full bg-[#0B0F16] border-b border-[#16202D] px-4 sm:px-8 py-2.5">
@@ -186,30 +185,7 @@ export default function HomePage() {
                   />
                   <span>Flashscore Scores & Trading</span>
                   <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
-                    NEW
-                  </span>
-                </button>
-
-                {/* Toffee Live Mode */}
-                <button
-                  onClick={() => {
-                    sound.playChipClick();
-                    setSportsViewMode("TOFFEE");
-                  }}
-                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
-                    sportsViewMode === "TOFFEE"
-                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <Radio
-                    className={`w-3.5 h-3.5 ${
-                      sportsViewMode === "TOFFEE" ? "text-black animate-pulse" : "text-red-500"
-                    }`}
-                  />
-                  <span>Toffee Live Stream</span>
-                  <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
-                    HD
+                    LIVE
                   </span>
                 </button>
 
@@ -242,8 +218,6 @@ export default function HomePage() {
         {/* View Component */}
         {sportsViewMode === "FLASHSCORE" ? (
           <FlashscoreSportsView />
-        ) : sportsViewMode === "TOFFEE" ? (
-          <ToffeeSportsView />
         ) : (
           <SportsBettingLayout />
         )}
