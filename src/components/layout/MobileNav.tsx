@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flame, Dices, Trophy, Wallet, Home, Plus } from "lucide-react";
+import { Flame, Trophy, Home, Plus, Sparkles, Layers } from "lucide-react";
 import { useUserStore } from "@/lib/store/useUserStore";
 import sound from "@/lib/sound";
 
@@ -23,16 +23,16 @@ export default function MobileNav() {
 
   const navItems = [
     {
-      label: "Home",
-      href: "/",
-      icon: Home,
-      isActive: pathname === "/",
+      label: "Sports",
+      href: "/sports",
+      icon: Trophy,
+      isActive: pathname === "/" || pathname.startsWith("/sports"),
     },
     {
-      label: "Aviator",
-      href: "/casino/aviator",
-      icon: Flame,
-      isActive: pathname.includes("aviator"),
+      label: "Spin Wheel",
+      href: "/casino/wheel",
+      icon: Sparkles,
+      isActive: pathname.includes("wheel"),
       badge: "HOT",
     },
     {
@@ -42,65 +42,61 @@ export default function MobileNav() {
       icon: Plus,
     },
     {
-      label: "Roulette",
-      href: "/casino/roulette",
-      icon: Dices,
-      isActive: pathname.includes("roulette"),
+      label: "24 Goti",
+      href: "/casino/goti",
+      icon: Layers,
+      isActive: pathname.includes("goti"),
     },
     {
-      label: "Sports",
-      href: "/sports",
-      icon: Trophy,
-      isActive: pathname.startsWith("/sports"),
+      label: "Aviator",
+      href: "/casino/aviator",
+      icon: Flame,
+      isActive: pathname.includes("aviator"),
     },
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#140C12]/95 backdrop-blur-md border-t border-[#342230] px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center justify-around max-w-md mx-auto">
-        {navItems.map((item, idx) => {
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#0D131A] border-t border-[#1A2432] py-1.5 px-3 select-none shadow-2xl">
+      <div className="flex items-center justify-around">
+        {navItems.map((item, index) => {
+          const Icon = item.icon;
+
           if (item.isAction) {
             return (
               <button
-                key="deposit-action"
+                key={index}
                 onClick={item.onClick}
-                className="flex flex-col items-center -mt-5 group focus:outline-none"
+                className="flex flex-col items-center justify-center -mt-5 transition transform active:scale-90"
               >
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#BA2649] to-[#E11D48] text-white flex items-center justify-center shadow-lg border-2 border-[#FEF9E7] active:scale-95 transition-transform">
-                  <Plus className="w-6 h-6 stroke-[3]" />
+                <div className="w-12 h-12 rounded-full bg-[#95D600] text-black flex items-center justify-center shadow-[0_0_15px_rgba(149,214,0,0.4)] border-2 border-[#0D131A]">
+                  <Icon className="w-6 h-6 stroke-[3]" />
                 </div>
-                <span className="text-[10px] font-black text-[#FFDE59] mt-0.5 uppercase tracking-wider">
+                <span className="text-[10px] font-black uppercase text-[#95D600] mt-0.5">
                   Deposit
                 </span>
               </button>
             );
           }
 
-          const Icon = item.icon;
-          const isActive = item.isActive;
-
           return (
             <Link
-              key={item.label}
-              href={item.href!}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors relative ${
-                isActive ? "text-[#FFDE59]" : "text-gray-400 hover:text-gray-200"
+              key={index}
+              href={item.href || "#"}
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition ${
+                item.isActive ? "text-[#95D600]" : "text-gray-400 hover:text-gray-200"
               }`}
             >
               <div className="relative">
-                <Icon className={`w-5 h-5 ${isActive ? "text-[#FFDE59]" : "text-gray-400"}`} />
+                <Icon className="w-5 h-5" />
                 {item.badge && (
-                  <span className="absolute -top-1 -right-2.5 px-1 py-0.2 bg-[#BA2649] text-[8px] font-black text-white rounded-full leading-none scale-75">
+                  <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-red-600 text-white text-[8px] font-black rounded-full">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-bold mt-0.5 leading-none">
+              <span className="text-[10px] font-bold mt-0.5 tracking-tight">
                 {item.label}
               </span>
-              {isActive && (
-                <div className="w-1 h-1 rounded-full bg-[#BA2649] mt-0.5" />
-              )}
             </Link>
           );
         })}

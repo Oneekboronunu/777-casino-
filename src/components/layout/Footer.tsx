@@ -1,18 +1,20 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Lock, Award, Flame, CreditCard } from "lucide-react";
+import { Shield, Lock, Award, HeartHandshake } from "lucide-react";
 import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
+import Bet777Logo from "@/components/common/Bet777Logo";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#0E070C] border-t border-[#342230] text-gray-400 py-10 px-4 sm:px-6 lg:px-8 content-lazy">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <footer className="w-full bg-[#080B0F] border-t border-[#141A23] text-gray-400 py-10 px-4 sm:px-6 lg:px-8 select-none">
+      <div className="max-w-[1600px] mx-auto space-y-8">
         {/* Payment Partners Bar */}
         <div>
-          <div className="text-center text-xs uppercase font-bold tracking-wider text-[#FFDE59] mb-4">
-            Official Instant Payment Methods & Banking Partners (BD Local)
+          <div className="text-center text-xs uppercase font-extrabold tracking-wider text-gray-300 mb-4 flex items-center justify-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-[#95D600] animate-pulse" />
+            <span>Official Instant 24/7 Payment & Banking Partners</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3.5">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <BKashLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <NagadLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
             <RocketLogo variant="badge" className="hover:scale-105 transition shadow-sm" />
@@ -21,57 +23,61 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Brand & Trust Badges */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-[#342230] text-xs">
-          <div className="space-y-2 md:col-span-2">
-            <div className="flex items-center space-x-2">
-              <div className="logo-777-badge px-2.5 py-0.5 rounded-lg flex items-center justify-center">
-                <span className="logo-777-text text-sm font-black tracking-wider leading-none">
-                  777
-                </span>
-              </div>
-              <span className="font-extrabold text-white text-sm">777 CASINO & SPORTSBOOK</span>
-            </div>
+        {/* Brand & Links Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-[#141A23] text-xs">
+          <div className="space-y-3 md:col-span-2">
+            <Bet777Logo size="md" href="/" />
             <p className="text-gray-400 leading-relaxed text-[11px] max-w-md">
-              777 Casino operates with certified random number generator (RNG) verification and real-time provably fair cryptographic hashing. Fast local bKash & Nagad withdrawals and 24/7 dedicated support.
+              bet777 is an elite online sports betting and casino gaming platform. We offer competitive live in-play odds across Cricket, Football, Tennis, and Basketball, alongside provably fair Casino Originals with instant local bKash, Nagad, and Rocket withdrawals.
             </p>
+            <div className="flex items-center space-x-3 text-[11px] text-gray-500 pt-1">
+              <span className="flex items-center space-x-1">
+                <Lock className="w-3.5 h-3.5 text-[#95D600]" />
+                <span>256-bit SSL Encrypted</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span>RNG Certified Fair</span>
+              </span>
+              <span className="flex items-center space-x-1">
+                <HeartHandshake className="w-3.5 h-3.5 text-red-500" />
+                <span>18+ Play Responsibly</span>
+              </span>
+            </div>
           </div>
 
           <div className="space-y-1.5">
-            <div className="font-bold text-[#FFDE59] text-xs uppercase tracking-wider mb-2">Casino Originals</div>
-            <div><Link href="/casino/aviator" className="hover:text-white transition">Aviator Crash</Link></div>
-            <div><Link href="/casino/carrom" className="hover:text-white transition">Carrom Board Pro</Link></div>
-            <div><Link href="/casino/roulette" className="hover:text-white transition">European Roulette 3D</Link></div>
-            <div><Link href="/casino/dice" className="hover:text-white transition">Provably Fair Dice</Link></div>
-            <div><Link href="/casino/coinflip" className="hover:text-white transition">Coin Flip Streak</Link></div>
+            <div className="font-extrabold text-white text-xs uppercase tracking-wider mb-2">
+              Sports Betting
+            </div>
+            <div><Link href="/sports?sport=CRICKET" className="hover:text-[#95D600] transition">Cricket Markets (IPL & BPL)</Link></div>
+            <div><Link href="/sports?sport=FOOTBALL" className="hover:text-[#95D600] transition">Premier League & Champions League</Link></div>
+            <div><Link href="/sports?status=LIVE" className="hover:text-[#95D600] transition">Live In-Play Matches</Link></div>
+            <div><Link href="/sports?boost=SUPER" className="hover:text-[#95D600] transition">777 Super Odds</Link></div>
           </div>
 
           <div className="space-y-1.5">
-            <div className="font-bold text-[#FFDE59] text-xs uppercase tracking-wider mb-2">Sports Prediction</div>
-            <div><Link href="/sports?sport=CRICKET" className="hover:text-white transition">IPL 2026 Prediction</Link></div>
-            <div><Link href="/sports?sport=CRICKET" className="hover:text-white transition">BPL Matches</Link></div>
-            <div><Link href="/sports?sport=FOOTBALL" className="hover:text-white transition">UEFA Champions League</Link></div>
-            <div><Link href="/sports?sport=FOOTBALL" className="hover:text-white transition">Premier League</Link></div>
-            <div><Link href="/account" className="hover:text-white transition">VIP Loyalty Rewards</Link></div>
+            <div className="font-extrabold text-white text-xs uppercase tracking-wider mb-2">
+              Casino Originals
+            </div>
+            <div><Link href="/casino/wheel" className="hover:text-[#95D600] transition">Spin to Win (Lucky Wheel)</Link></div>
+            <div><Link href="/casino/goti" className="hover:text-[#95D600] transition">24 Goti (Bead 12)</Link></div>
+            <div><Link href="/casino/aviator" className="hover:text-[#95D600] transition">Aviator Crash</Link></div>
+            <div><Link href="/casino/roulette" className="hover:text-[#95D600] transition">European Roulette 3D</Link></div>
+            <div><Link href="/casino/carrom" className="hover:text-[#95D600] transition">Carrom Board Pro</Link></div>
+            <div><Link href="/admin" className="hover:text-amber-400 transition font-mono text-[11px]">Admin Business Center</Link></div>
           </div>
         </div>
 
-        {/* Compliance Footer */}
-        <div className="pt-6 border-t border-[#342230] flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-500 space-y-3 sm:space-y-0">
-          <div className="flex items-center space-x-3">
-            <span className="px-2 py-0.5 bg-[#BA2649]/20 text-[#FFDE59] font-bold rounded">18+</span>
-            <span>Gambling can be addictive. Play responsibly.</span>
+        {/* Bottom Copyright */}
+        <div className="pt-6 border-t border-[#141A23] flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-500 space-y-2 sm:space-y-0">
+          <div>
+            © {new Date().getFullYear()} bet777. All rights reserved. Licensed & Provably Fair.
           </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="flex items-center space-x-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
-              <span>Curacao License #8048/JAZ</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <Lock className="w-3.5 h-3.5 text-[#FFDE59]" />
-              <span>256-Bit SSL Encrypted</span>
-            </span>
+          <div className="flex space-x-4">
+            <Link href="/" className="hover:text-white transition">Terms of Service</Link>
+            <Link href="/" className="hover:text-white transition">Privacy Policy</Link>
+            <Link href="/" className="hover:text-white transition">Fairness & RNG</Link>
           </div>
         </div>
       </div>

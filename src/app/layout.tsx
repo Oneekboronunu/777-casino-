@@ -3,7 +3,7 @@ import "./globals.css";
 import RootLayoutClient from "@/components/layout/RootLayoutClient";
 
 export const viewport: Viewport = {
-  themeColor: "#120B10",
+  themeColor: "#090D12",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -11,20 +11,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "777 Casino & Sportsbook — Premier Online Gaming & Prediction",
+  title: "bet777 — Online Sports Betting, Live Odds & Casino Games",
   description:
-    "Professional online casino and sportsbook. Play Aviator Crash, Carrom Board Pro, European Roulette 3D, and predict live IPL & UEFA matches with instant bKash, Nagad & Rocket payouts.",
+    "Official bet777 Sportsbook and Casino. Bet on Cricket, Football, Basketball, Tennis with live in-play odds, plus Casino Originals including Spin to Win, 24 Goti, and Aviator Crash with instant bKash, Nagad & Rocket payouts.",
   keywords: [
-    "777 Casino",
-    "Sportsbook",
+    "bet777",
+    "777 Sportsbook",
+    "Cricket Betting",
+    "Live Odds",
+    "Spin to Win",
     "Aviator Crash",
-    "European Roulette 3D",
-    "Carrom Board Betting",
-    "Cricket Score Prediction",
-    "Football Odds",
-    "bKash Casino",
-    "Nagad Betting",
-    "Rocket Casino",
+    "24 Goti",
+    "European Roulette",
+    "bKash Sports Betting",
+    "Nagad Casino",
   ],
   icons: {
     icon: "/icon.svg",
@@ -43,11 +43,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Bungee&family=Playfair+Display:wght@700;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-[#120B10] text-[#F8F4EE] min-h-screen antialiased selection:bg-[#BA2649] selection:text-[#FFDE59]">
+      <body className="bg-[#090D12] text-[#E2E8F0] min-h-screen antialiased selection:bg-[#95D600] selection:text-black">
         <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>
