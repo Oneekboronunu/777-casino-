@@ -22,9 +22,10 @@ import GameCard from "@/components/arcade/GameCard";
 import { ARCADE_GAMES, ArcadeGame } from "@/data/arcadeGames";
 import { useArcadeStore } from "@/lib/store/useArcadeStore";
 import sound from "@/lib/sound";
+import { Gift } from "lucide-react";
 
 export default function ArcadeHomePage() {
-  const { searchQuery, setSearchQuery, setActiveDemoGame } = useArcadeStore();
+  const { searchQuery, setSearchQuery, setActiveDemoGame, setIsFreePlayModalOpen } = useArcadeStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const featuredRowRef = useRef<HTMLDivElement>(null);
 
@@ -58,9 +59,8 @@ export default function ArcadeHomePage() {
   }, [searchQuery, selectedCategory]);
 
   const featuredGames = useMemo(() => {
-    return ARCADE_GAMES.filter(
-      (g) => g.badge === "POPULAR" || g.badge === "HOT" || g.id === "big-bass-splash" || g.id === "legacy-of-dead"
-    );
+    // Exact 8 games from reference screenshot 1
+    return ARCADE_GAMES.slice(0, 8);
   }, []);
 
   const newGames = useMemo(() => {
@@ -179,18 +179,33 @@ export default function ArcadeHomePage() {
               </div>
             </div>
 
-            {/* Horizontal Scrollable Carousel Row */}
-            <div
-              ref={featuredRowRef}
-              className="flex items-center space-x-3 sm:space-x-4 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-[#91D2BC] scrollbar-track-[#FFF6D4]/40 scroll-smooth"
-            >
-              {featuredGames.map((game) => (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  onPlay={(g) => setActiveDemoGame(g)}
-                />
-              ))}
+            {/* Horizontal Scrollable Carousel Row with Floating Gift Button */}
+            <div className="relative">
+              <div
+                ref={featuredRowRef}
+                className="flex items-center space-x-3 sm:space-x-4 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-[#91D2BC] scrollbar-track-[#FFF6D4]/40 scroll-smooth pr-14"
+              >
+                {featuredGames.map((game) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    onPlay={(g) => setActiveDemoGame(g)}
+                  />
+                ))}
+              </div>
+
+              {/* Floating Teal Gift Icon Button (Exact match to screenshot!) */}
+              <button
+                onClick={() => {
+                  sound.playWin();
+                  setIsFreePlayModalOpen(true);
+                }}
+                className="absolute right-2 bottom-6 z-20 w-11 h-11 rounded-full bg-[#0D9488] hover:bg-[#0F766E] text-white flex items-center justify-center shadow-2xl border-2 border-white/80 transition-transform transform hover:scale-110 active:scale-95 animate-bounce"
+                title="Claim Free Bonus Gift"
+                aria-label="FreePlay Gift"
+              >
+                <Gift className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Custom Track Indicator Bar (matches screenshot scrollbar styling) */}

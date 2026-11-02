@@ -41,6 +41,14 @@ export default function GameCard({ game, onPlay }: GameCardProps) {
               <span className="text-2xl mt-1 text-yellow-300">⚱️</span>
             </div>
           )}
+          {game.artworkType === "boat-anchor" && (
+            <div className="flex flex-col items-center">
+              <span className="text-4xl sm:text-5xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+                🚤
+              </span>
+              <span className="text-3xl mt-1 text-cyan-200">⚓</span>
+            </div>
+          )}
           {game.artworkType === "candy" && (
             <div className="flex flex-col items-center">
               <span className="text-5xl sm:text-6xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
@@ -49,12 +57,36 @@ export default function GameCard({ game, onPlay }: GameCardProps) {
               <span className="text-2xl mt-1">🍭</span>
             </div>
           )}
+          {game.artworkType === "mask-drum" && (
+            <div className="flex flex-col items-center">
+              <span className="text-5xl sm:text-6xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+                👺
+              </span>
+              <span className="text-2xl mt-1">🥁</span>
+            </div>
+          )}
+          {game.artworkType === "book-egypt" && (
+            <div className="flex flex-col items-center">
+              <span className="text-5xl sm:text-6xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] text-amber-300">
+                📖
+              </span>
+              <span className="text-2xl mt-1">🪲</span>
+            </div>
+          )}
           {game.artworkType === "roulette" && (
             <div className="flex flex-col items-center">
               <span className="text-5xl sm:text-6xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
                 🎡
               </span>
               <span className="text-2xl mt-1">🔥</span>
+            </div>
+          )}
+          {game.artworkType === "chalice-zeus" && (
+            <div className="flex flex-col items-center">
+              <span className="text-5xl sm:text-6xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] text-yellow-300">
+                🏆
+              </span>
+              <span className="text-2xl mt-1">⚡</span>
             </div>
           )}
           {game.artworkType === "zeus" && (
@@ -134,10 +166,20 @@ export default function GameCard({ game, onPlay }: GameCardProps) {
           <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-[#FFE58B] transition-colors truncate drop-shadow-sm">
             {game.title}
           </h3>
-          <div className="flex items-center justify-between mt-0.5 text-[10px] text-gray-300">
-            <span className="text-yellow-300 font-bold">Free Demo</span>
-            <span className="font-mono text-emerald-300">{game.rtp || "96.5%"}</span>
-          </div>
+
+          {/* If the game has a specific jackpot value (e.g. $5,590.74 on Holy Mackerel) */}
+          {game.jackpotValue ? (
+            <div className="mt-1 flex justify-center">
+              <span className="px-2.5 py-0.5 rounded-full bg-black/80 border border-emerald-400/60 font-mono font-black text-emerald-300 text-[10px] shadow-xs">
+                {game.jackpotValue}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mt-0.5 text-[10px] text-gray-300">
+              <span className="text-yellow-300 font-bold">Free Demo</span>
+              <span className="font-mono text-emerald-300">{game.rtp || "96.5%"}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

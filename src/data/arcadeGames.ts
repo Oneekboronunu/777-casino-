@@ -4,15 +4,30 @@ export interface ArcadeGame {
   category: "Slots" | "Roulette" | "Blackjack" | "Arcade" | "Jackpot" | "Live Casino";
   theme: "Adventure" | "Classic" | "Mythology" | "Candy" | "Fish" | "Table" | "Puzzle";
   badge?: "NEW" | "HOT" | "POPULAR";
+  jackpotValue?: string;
   rtp?: string;
   minBet: number;
   bgGradient: string;
   iconEmoji: string;
-  artworkType: "fisherman" | "egypt" | "candy" | "roulette" | "zeus" | "fruit" | "plane" | "wheel" | "cards";
+  artworkType:
+    | "fisherman"
+    | "egypt"
+    | "candy"
+    | "roulette"
+    | "zeus"
+    | "fruit"
+    | "plane"
+    | "wheel"
+    | "cards"
+    | "boat-anchor"
+    | "mask-drum"
+    | "book-egypt"
+    | "chalice-zeus";
   description: string;
 }
 
 export const ARCADE_GAMES: ArcadeGame[] = [
+  // 1. Big Bass Splash (Exact match to screenshot card 1)
   {
     id: "big-bass-splash",
     title: "Big Bass Splash",
@@ -21,11 +36,12 @@ export const ARCADE_GAMES: ArcadeGame[] = [
     badge: "POPULAR",
     rtp: "96.7%",
     minBet: 100,
-    bgGradient: "from-cyan-600 via-teal-700 to-emerald-900",
+    bgGradient: "from-sky-500 via-cyan-600 to-teal-800",
     iconEmoji: "🎣",
     artworkType: "fisherman",
     description: "Reel in massive bass fish multipliers and dynamic free-spin arcade bonuses!",
   },
+  // 2. Legacy of Dead (Exact match to screenshot card 2)
   {
     id: "legacy-of-dead",
     title: "Legacy of Dead",
@@ -39,19 +55,64 @@ export const ARCADE_GAMES: ArcadeGame[] = [
     artworkType: "egypt",
     description: "Uncover ancient golden pharaoh tombs with expanding mystical arcade scrolls.",
   },
+  // 3. Holy Mackerel Extreme Fishing (Exact match to screenshot card 3 with $5,590.74 pill)
+  {
+    id: "holy-mackerel",
+    title: "Holy Mackerel Extreme Fishing",
+    category: "Slots",
+    theme: "Fish",
+    badge: "HOT",
+    jackpotValue: "$5,590.74",
+    rtp: "96.6%",
+    minBet: 100,
+    bgGradient: "from-sky-400 via-cyan-600 to-blue-900",
+    iconEmoji: "⚓",
+    artworkType: "boat-anchor",
+    description: "Deep-sea extreme trawler quest with sunken chests and anchored multipliers.",
+  },
+  // 4. Sugar Rush Super Scatter (Exact match to screenshot card 4)
   {
     id: "sugar-rush",
-    title: "Sugar Rush",
+    title: "Sugar Rush Super Scatter",
     category: "Slots",
     theme: "Candy",
     badge: "POPULAR",
     rtp: "96.5%",
     minBet: 100,
-    bgGradient: "from-pink-500 via-fuchsia-600 to-purple-900",
+    bgGradient: "from-pink-400 via-fuchsia-500 to-purple-800",
     iconEmoji: "🍬",
     artworkType: "candy",
     description: "Tumble juicy gummy bears with exploding 128x arcade grid multipliers!",
   },
+  // 5. 12 Masks of Fire Drum Frenzy (Exact match to screenshot card 5)
+  {
+    id: "12-masks-of-fire",
+    title: "12 Masks of Fire Drum Frenzy",
+    category: "Slots",
+    theme: "Adventure",
+    badge: "HOT",
+    rtp: "96.3%",
+    minBet: 100,
+    bgGradient: "from-orange-500 via-red-600 to-amber-900",
+    iconEmoji: "🥁",
+    artworkType: "mask-drum",
+    description: "Feel the rhythmic pulse of flaming African drums and instant scatter prizes.",
+  },
+  // 6. Book of Dead Go Collect (Exact match to screenshot card 6)
+  {
+    id: "book-of-dead",
+    title: "Book of Dead Go Collect",
+    category: "Slots",
+    theme: "Mythology",
+    badge: "POPULAR",
+    rtp: "96.5%",
+    minBet: 100,
+    bgGradient: "from-amber-500 via-yellow-600 to-stone-900",
+    iconEmoji: "📖",
+    artworkType: "book-egypt",
+    description: "Explore secret pyramid corridors and collect ancient gilded scarab treasures.",
+  },
+  // 7. Mega Fire Blaze Roulette (Exact match to screenshot card 7)
   {
     id: "mega-fire-blaze",
     title: "Mega Fire Blaze Roulette",
@@ -60,24 +121,27 @@ export const ARCADE_GAMES: ArcadeGame[] = [
     badge: "HOT",
     rtp: "97.3%",
     minBet: 50,
-    bgGradient: "from-red-600 via-orange-600 to-amber-900",
-    iconEmoji: "🎯",
+    bgGradient: "from-purple-900 via-rose-900 to-amber-900",
+    iconEmoji: "🎡",
     artworkType: "roulette",
     description: "European single-zero wheel with blazing fire numbers paying up to 500x.",
   },
+  // 8. Gates of Olympus Super Scatter (Exact match to screenshot card 8)
   {
     id: "gates-of-olympus",
-    title: "Gates of Olympus",
+    title: "Gates of Olympus Super Scatter",
     category: "Slots",
     theme: "Mythology",
     badge: "POPULAR",
     rtp: "96.5%",
     minBet: 100,
-    bgGradient: "from-purple-600 via-indigo-700 to-blue-950",
+    bgGradient: "from-violet-600 via-purple-700 to-amber-900",
     iconEmoji: "⚡",
-    artworkType: "zeus",
-    description: "Zeus strikes lightning orbs with up to 500x random cascade multipliers.",
+    artworkType: "chalice-zeus",
+    description: "Zeus strikes lightning orbs with divine golden chalice cascade multipliers.",
   },
+
+  // Additional Arcade & Table Hits
   {
     id: "sweet-bonanza",
     title: "Sweet Bonanza",
