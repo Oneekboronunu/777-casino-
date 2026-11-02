@@ -3,7 +3,7 @@ import "./globals.css";
 import RootLayoutClient from "@/components/layout/RootLayoutClient";
 
 export const viewport: Viewport = {
-  themeColor: "#090D12",
+  themeColor: "#91D2BC",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -11,20 +11,18 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "bet777 — Online Sports Betting, Live Odds & Casino Games",
+  title: "777 Retro Arcade — Premium Free-to-Play Arcade Gaming",
   description:
-    "Official bet777 Sportsbook and Casino. Bet on Cricket, Football, Basketball, Tennis with live in-play odds, plus Casino Originals including Spin to Win, 24 Goti, and Aviator Crash with instant bKash, Nagad & Rocket payouts.",
+    "Explore the world of arcade entertainment. Play Big Bass Splash, Legacy of Dead, Sugar Rush, Aviator Crash, European Roulette and classic arcade games with virtual FreePlay points. 100% free, no real-money gambling.",
   keywords: [
-    "bet777",
-    "777 Sportsbook",
-    "Cricket Betting",
-    "Live Odds",
-    "Spin to Win",
-    "Aviator Crash",
-    "24 Goti",
-    "European Roulette",
-    "bKash Sports Betting",
-    "Nagad Casino",
+    "Retro Arcade",
+    "777 Arcade",
+    "Free-to-Play Games",
+    "Arcade Slots",
+    "Big Bass Splash",
+    "Sugar Rush",
+    "Virtual Points Gaming",
+    "Retro Gaming Platform",
   ],
   icons: {
     icon: "/icon.svg",
@@ -38,16 +36,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bungee&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-[#090D12] text-[#E2E8F0] min-h-screen antialiased selection:bg-[#95D600] selection:text-black">
+      <body className="bg-[#C4E4CB] text-[#40243B] min-h-screen antialiased selection:bg-[#C33355] selection:text-white">
         <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>

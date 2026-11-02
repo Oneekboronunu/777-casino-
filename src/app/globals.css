@@ -4,14 +4,15 @@
 
 :root {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Cabinet Grotesk', 'Inter', sans-serif;
   --font-retro: 'Bungee', 'Impact', 'Arial Black', sans-serif;
-  --brand-lime: #95D600;
-  --brand-lime-hover: #84BF00;
-  --brand-red: #FF1F2D;
-  --bg-dark: #090D12;
-  --card-dark: #111721;
-  --border-dark: #19232F;
+  --color-mint-sidebar: #91D2BC;
+  --color-mint-bg: #C4E4CB;
+  --color-cream-header: #FFF6D4;
+  --color-hero-dark: #303030;
+  --color-primary-pink: #C33355;
+  --color-dark-text: #40243B;
+  --color-soft-yellow: #FFE58B;
+  --color-teal: #0D9488;
 }
 
 * {
@@ -26,102 +27,95 @@ html {
 
 body {
   font-family: var(--font-inter);
-  background-color: #090D12;
-  color: #E2E8F0;
+  background-color: #C4E4CB;
+  color: #40243B;
   overflow-x: hidden;
   text-rendering: optimizeSpeed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Eliminate 300ms mobile tap delay */
 button, a, input, select, textarea, [role="button"] {
   touch-action: manipulation;
 }
 
-/* Custom Fast Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090D12;
+  background: #C4E4CB;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E2938;
+  background: #91D2BC;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #95D600;
+  background: #7EBFAA;
 }
 
-/* Bet777 Signature Button Styles */
-.btn-bet777-primary {
-  background-color: #95D600;
-  color: #000000;
-  font-weight: 900;
-  text-transform: uppercase;
+/* 777 Retro Logo Badge */
+.logo-777-badge {
+  background: linear-gradient(135deg, #C33355 0%, #A01C3E 100%);
+  border: 2px solid #FFE58B;
+  box-shadow: 0 4px 10px rgba(195, 51, 85, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.logo-777-text {
+  font-family: var(--font-retro);
+  color: #FFE58B;
+  text-shadow: 1px 2px 0px #40243B, 0 0 8px rgba(255, 229, 139, 0.6);
+  letter-spacing: 0.05em;
+}
+
+/* Button Utilities */
+.btn-pink-pill {
+  background-color: #C33355;
+  color: #FFFFFF;
+  font-weight: 800;
   border-radius: 9999px;
   transition: all 0.2s ease;
-  box-shadow: 0 0 12px rgba(149, 214, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(195, 51, 85, 0.3);
 }
 
-.btn-bet777-primary:hover {
-  background-color: #84BF00;
-  box-shadow: 0 0 18px rgba(149, 214, 0, 0.5);
-  transform: scale(1.02);
+.btn-pink-pill:hover {
+  background-color: #AA2443;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(195, 51, 85, 0.4);
 }
 
-.btn-bet777-outline {
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+.btn-teal-pill {
+  background-color: #0D9488;
   color: #FFFFFF;
-  font-weight: 900;
-  text-transform: uppercase;
-  border-radius: 9999px;
+  font-weight: 800;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(13, 148, 136, 0.25);
+}
+
+.btn-teal-pill:hover {
+  background-color: #0F766E;
+  transform: translateY(-1px);
+}
+
+.btn-mint-outline {
+  background-color: #E6F4EE;
+  color: #C33355;
+  border: 1.5px solid #C33355;
+  font-weight: 800;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
-.btn-bet777-outline:hover {
-  border-color: #FFFFFF;
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
+.btn-mint-outline:hover {
+  background-color: #D4EDE2;
 }
 
-/* Modern Dark Sports Card */
-.bet777-card {
-  background-color: #111721;
-  border: 1px solid #1B2635;
-  border-radius: 1rem;
-  transition: all 0.25s ease;
-}
-
-.bet777-card:hover {
-  border-color: #26364A;
-  background-color: #141C28;
-}
-
-/* Odds button styling */
-.bet777-odd-btn {
-  background-color: #182230;
-  border: 1px solid #253448;
-  color: #FFFFFF;
-  font-family: monospace;
-  font-weight: 900;
-  border-radius: 0.75rem;
-  transition: all 0.15s ease;
-}
-
-.bet777-odd-btn:hover {
-  background-color: #202D40;
-  border-color: #31445E;
-}
-
-.bet777-odd-btn.selected {
-  background-color: #95D600;
-  color: #000000;
-  border-color: #95D600;
-  box-shadow: 0 0 12px rgba(149, 214, 0, 0.45);
+/* Cookie Popup Shadow */
+.cookie-popup-shadow {
+  box-shadow: 0 10px 35px -5px rgba(64, 36, 59, 0.2), 0 0 0 1px rgba(234, 219, 190, 0.8);
 }

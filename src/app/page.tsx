@@ -1,384 +1,269 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  Flame,
-  Layers,
-  Dices,
-  Activity,
-  Coins,
-  Trophy,
   Sparkles,
+  ChevronLeft,
   ChevronRight,
+  Flame,
   Star,
-  Heart,
-  Zap,
-  ArrowRight,
+  Search,
+  Filter,
+  Trophy,
+  Dices,
+  CircleDot,
+  Layers,
+  Gamepad2,
+  CheckCircle2,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import { useUserStore } from "@/lib/store/useUserStore";
+import HeroBanner from "@/components/arcade/HeroBanner";
+import GameCard from "@/components/arcade/GameCard";
+import { ARCADE_GAMES, ArcadeGame } from "@/data/arcadeGames";
+import { useArcadeStore } from "@/lib/store/useArcadeStore";
 import sound from "@/lib/sound";
-import { BKashLogo, NagadLogo, RocketLogo, UpayLogo, BankLogo } from "@/components/common/PaymentLogos";
-import { Radio, TableProperties } from "lucide-react";
 
-const FlashscoreSportsView = dynamic(
-  () => import("@/components/sports/FlashscoreSportsView"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-80 flex items-center justify-center bg-[#0B0F15] text-[#95D600] font-mono text-xs">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#95D600] animate-ping mr-2.5" />
-        Loading Live Sports & Probabilities...
-      </div>
-    ),
-  }
-);
+export default function ArcadeHomePage() {
+  const { searchQuery, setSearchQuery, setActiveDemoGame } = useArcadeStore();
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const featuredRowRef = useRef<HTMLDivElement>(null);
 
-const SportsBettingLayout = dynamic(
-  () => import("@/components/sports/SportsBettingLayout"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-80 flex items-center justify-center bg-[#0B0F15] text-gray-400 font-mono text-xs">
-        Loading Sports Matrix...
-      </div>
-    ),
-  }
-);
-
-export default function HomePage() {
-  const { user, setIsDepositModalOpen, openAuthModal } = useUserStore();
-  const [jackpotAmount, setJackpotAmount] = useState<number>(18452390);
-  const [sportsViewMode, setSportsViewMode] = useState<"FLASHSCORE" | "MATRIX">("FLASHSCORE");
-
-  // Progressive jackpot increment
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setJackpotAmount((prev) => prev + Math.floor(15 + Math.random() * 45));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const casinoGames = [
-    {
-      title: "Spin to Win (Lucky Wheel)",
-      desc: "Luxury casino wheel with weighted probability, Jackpot rewards & live admin hub",
-      href: "/casino/wheel",
-      icon: Sparkles,
-      color: "from-purple-950 to-[#120624]",
-      accent: "text-amber-400",
-      badge: "HOT",
-    },
-    {
-      title: "24 Goti (Bead 12)",
-      desc: "Traditional South Asian board game with forts, multi-jumps, and live chat",
-      href: "/casino/goti",
-      icon: Layers,
-      color: "from-amber-950 to-[#1A1108]",
-      accent: "text-amber-500",
-      badge: "CLASSIC",
-    },
-    {
-      title: "Aviator Crash",
-      desc: "Retro flight rocket curve with dual cashout consoles",
-      href: "/casino/aviator",
-      icon: Flame,
-      color: "from-red-950 to-[#180A0E]",
-      accent: "text-red-500",
-      badge: "HOTTEST",
-    },
-    {
-      title: "24/7 Hearts Online",
-      desc: "Authentic 4-Player trick-taking, passing cycle & Shoot the Moon",
-      href: "/casino/hearts",
-      icon: Heart,
-      color: "from-rose-950 to-[#180A12]",
-      accent: "text-rose-400",
-      badge: "4P PRO",
-    },
-    {
-      title: "Carrom Board Pro",
-      desc: "Authentic 2D physics board with Queen cover 10x jackpot",
-      href: "/casino/carrom",
-      icon: Layers,
-      color: "from-yellow-950 to-[#161208]",
-      accent: "text-amber-300",
-      badge: "POPULAR",
-    },
-    {
-      title: "European Roulette 3D",
-      desc: "Single zero wheel with 36x straight up & outside bets",
-      href: "/casino/roulette",
-      icon: Dices,
-      color: "from-emerald-950 to-[#0A1812]",
-      accent: "text-[#95D600]",
-      badge: "97.3% RTP",
-    },
-    {
-      title: "Provably Fair Dice",
-      desc: "99% RTP customizable slider with roll under/over multipliers",
-      href: "/casino/dice",
-      icon: Activity,
-      color: "from-blue-950 to-[#0A121E]",
-      accent: "text-blue-400",
-      badge: "INSTANT ROLL",
-    },
-    {
-      title: "Coin Flip Streak",
-      desc: "Consecutive win multipliers scaling up to 100x cashout",
-      href: "/casino/coinflip",
-      icon: Coins,
-      color: "from-purple-950 to-[#14081E]",
-      accent: "text-yellow-400",
-      badge: "FAST PACED",
-    },
+  const categories = [
+    { id: "ALL", label: "All Games", icon: Gamepad2 },
+    { id: "Slots", label: "Slots", icon: Dices },
+    { id: "Roulette", label: "Roulette", icon: CircleDot },
+    { id: "Blackjack", label: "Blackjack", icon: Layers },
+    { id: "Jackpot", label: "Jackpots", icon: Trophy },
+    { id: "Arcade", label: "Arcade Hits", icon: Flame },
   ];
 
+  // Filter games based on search query and category
+  const filteredGames = useMemo(() => {
+    let result = ARCADE_GAMES;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (g) =>
+          g.title.toLowerCase().includes(q) ||
+          g.theme.toLowerCase().includes(q) ||
+          g.category.toLowerCase().includes(q) ||
+          g.description.toLowerCase().includes(q)
+      );
+    } else if (selectedCategory !== "ALL") {
+      result = result.filter((g) => g.category === selectedCategory);
+    }
+
+    return result;
+  }, [searchQuery, selectedCategory]);
+
+  const featuredGames = useMemo(() => {
+    return ARCADE_GAMES.filter(
+      (g) => g.badge === "POPULAR" || g.badge === "HOT" || g.id === "big-bass-splash" || g.id === "legacy-of-dead"
+    );
+  }, []);
+
+  const newGames = useMemo(() => {
+    return ARCADE_GAMES.filter(
+      (g) => g.badge === "NEW" || g.id === "sweet-bonanza" || g.id === "golden-treasure" || g.id === "wild-adventure"
+    );
+  }, []);
+
+  const scrollFeatured = (direction: "left" | "right") => {
+    sound.playChipClick();
+    if (featuredRowRef.current) {
+      const scrollAmount = direction === "left" ? -320 : 320;
+      featuredRowRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="space-y-10 pb-16">
-      {/* 1. BET777 PROMO BANNER (Modern Dark Sportsbook Hero) */}
-      <section className="relative w-full bg-gradient-to-r from-[#0C121A] via-[#111A26] to-[#0C121A] border-b border-[#1A2534] py-6 sm:py-8 px-4 sm:px-8 overflow-hidden select-none">
-        <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#95D600]/15 border border-[#95D600]/30 text-[#95D600] text-xs font-black uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-[#95D600] animate-pulse" />
-              <span>SUPER ODDS LIVE • UP TO ৳25,000 WELCOME BONUS</span>
-            </div>
+    <div className="w-full flex flex-col space-y-6 pb-8 select-none">
+      {/* 1. HERO PROMOTIONAL BANNER */}
+      <HeroBanner
+        onPlayClick={() => {
+          const featured = ARCADE_GAMES[0];
+          setActiveDemoGame(featured);
+        }}
+      />
 
-            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight uppercase">
-              Premier Sportsbook & Casino
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
-              Real-time competitive in-play odds for Cricket, Football, and Basketball. Enjoy provably fair Casino Originals with instant local bKash, Nagad, and Rocket payouts.
-            </p>
-          </div>
-
-          {/* Quick Action CTAs */}
-          <div className="flex items-center space-x-3 shrink-0">
-            <button
-              onClick={() => {
-                if (user) {
-                  setIsDepositModalOpen(true);
-                } else {
-                  openAuthModal("REGISTER");
-                }
-                sound.playWin();
-              }}
-              className="px-6 sm:px-8 py-3.5 rounded-full bg-[#95D600] hover:bg-[#85c200] text-black font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(149,214,0,0.4)] active:scale-95"
-            >
-              Deposit & Play
-            </button>
-            <Link
-              href="/casino/wheel"
-              className="px-5 sm:px-7 py-3.5 rounded-full border border-amber-400/50 hover:border-amber-400 text-amber-300 hover:text-white font-black text-xs sm:text-sm uppercase tracking-wider transition bg-black/40 flex items-center space-x-1.5"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Spin to Win</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. CORE SPORTS VISUALS (Flashscore Scores & Trading, or bet777 Matrix) */}
-      <section className="w-full">
-        {/* Experience Switcher Bar */}
-        <div className="w-full bg-[#0B0F16] border-b border-[#16202D] px-4 sm:px-8 py-2.5">
-          <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-gray-400 hidden sm:inline">
-                Sports Mode:
-              </span>
-              <div className="flex items-center bg-[#131A24] p-1 rounded-xl border border-[#1E2938] overflow-x-auto scrollbar-none">
-                {/* Flashscore Mode */}
-                <button
-                  onClick={() => {
-                    sound.playChipClick();
-                    setSportsViewMode("FLASHSCORE");
-                  }}
-                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
-                    sportsViewMode === "FLASHSCORE"
-                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <Activity
-                    className={`w-3.5 h-3.5 ${
-                      sportsViewMode === "FLASHSCORE" ? "text-black" : "text-[#95D600]"
-                    }`}
-                  />
-                  <span>Flashscore Scores & Trading</span>
-                  <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
-                    LIVE
-                  </span>
-                </button>
-
-                {/* bet777 Matrix Mode */}
-                <button
-                  onClick={() => {
-                    sound.playChipClick();
-                    setSportsViewMode("MATRIX");
-                  }}
-                  className={`flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition whitespace-nowrap ${
-                    sportsViewMode === "MATRIX"
-                      ? "bg-[#95D600] text-black shadow-[0_0_12px_rgba(149,214,0,0.35)]"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <TableProperties className="w-3.5 h-3.5" />
-                  <span>bet777 Matrix</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 text-xs font-mono text-gray-400">
-              <span className="w-2 h-2 rounded-full bg-[#95D600] animate-ping" />
-              <span className="hidden md:inline text-gray-300">Live Match Tracking:</span>
-              <span className="text-[#95D600] font-bold">Flashscore Real-Time Probabilities</span>
-            </div>
-          </div>
-        </div>
-
-        {/* View Component */}
-        {sportsViewMode === "FLASHSCORE" ? (
-          <FlashscoreSportsView />
-        ) : (
-          <SportsBettingLayout />
-        )}
-      </section>
-
-      {/* 3. PROGRESSIVE GRAND JACKPOT TICKER */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-[#111721] via-[#162130] to-[#111721] border border-[#1F2E40] rounded-3xl p-5 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-          <div className="flex items-center space-x-4 text-center md:text-left">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center shadow-lg">
-              <Star className="w-8 h-8 text-amber-400 fill-amber-400" />
-            </div>
-            <div>
-              <div className="text-xs uppercase font-black tracking-widest text-[#95D600]">
-                bet777 Progressive Mega Jackpot
-              </div>
-              <div className="text-2xl sm:text-4xl font-mono font-black text-white tracking-tight mt-0.5">
-                ৳{jackpotAmount.toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="text-right hidden sm:block">
-              <div className="text-[11px] text-gray-400 font-medium">Last Mega Drop Winner</div>
-              <div className="text-xs font-bold text-white">Tanvir H. (৳2,450,000)</div>
-            </div>
-            <button
-              onClick={() => {
-                if (user) {
-                  setIsDepositModalOpen(true);
-                } else {
-                  openAuthModal("LOGIN");
-                }
-              }}
-              className="px-6 py-3 rounded-full bg-[#95D600] hover:bg-[#85c200] text-black font-black text-xs uppercase tracking-wider transition active:scale-95 shadow-[0_0_12px_rgba(149,214,0,0.3)]"
-            >
-              Play to Trigger
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. INSTANT LOCAL PAYMENT LOGOS STRIP */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#111721] border border-[#19232F] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-          <div className="flex items-center space-x-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#95D600] animate-ping" />
-            <span className="text-xs font-extrabold uppercase tracking-wider text-white">
-              Instant 24/7 Deposits & Withdrawals (Bangladesh):
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <div
-              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
-              className="cursor-pointer hover:scale-105 transition transform"
-            >
-              <BKashLogo variant="badge" />
-            </div>
-            <div
-              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
-              className="cursor-pointer hover:scale-105 transition transform"
-            >
-              <NagadLogo variant="badge" />
-            </div>
-            <div
-              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
-              className="cursor-pointer hover:scale-105 transition transform"
-            >
-              <RocketLogo variant="badge" />
-            </div>
-            <div
-              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
-              className="cursor-pointer hover:scale-105 transition transform"
-            >
-              <UpayLogo variant="badge" />
-            </div>
-            <div
-              onClick={() => { setIsDepositModalOpen(true); sound.playChipClick(); }}
-              className="cursor-pointer hover:scale-105 transition transform"
-            >
-              <BankLogo variant="badge" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. POPULAR CASINO ORIGINALS SHELF */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Flame className="w-5 h-5 text-red-500" />
-            <h2 className="text-lg font-black text-white tracking-wide uppercase">
-              777 Casino Originals
-            </h2>
-          </div>
-          <span className="text-xs text-gray-400 font-medium">Provably Fair & Instant Payouts</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {casinoGames.map((game) => {
-            const Icon = game.icon;
+      {/* 2. CATEGORY PILL FILTER BAR */}
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6">
+        <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isSelected = selectedCategory === cat.id && !searchQuery.trim();
             return (
-              <Link
-                key={game.title}
-                href={game.href}
-                className="group relative bg-[#111721] hover:bg-[#141C28] border border-[#19232F] hover:border-[#95D600]/60 rounded-2xl p-5 transition-all duration-200 hover:-translate-y-1 shadow-lg flex flex-col justify-between overflow-hidden"
+              <button
+                key={cat.id}
+                onClick={() => {
+                  sound.playChipClick();
+                  setSearchQuery("");
+                  setSelectedCategory(cat.id);
+                }}
+                className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-black transition-all shrink-0 shadow-xs ${
+                  isSelected
+                    ? "bg-[#C33355] text-white shadow-md scale-105"
+                    : "bg-[#FFF6D4] text-[#40243B] hover:bg-[#FFEEC0] border border-[#DECF9E]"
+                }`}
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-xl bg-[#16202C] border border-[#212E3F] group-hover:border-[#95D600] flex items-center justify-center transition">
-                      <Icon className={`w-5 h-5 ${game.accent}`} />
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-[#16202C] text-[#95D600] border border-[#95D600]/30">
-                      {game.badge}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-black text-white group-hover:text-[#95D600] transition">
-                      {game.title}
-                    </h3>
-                    <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">
-                      {game.desc}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-[#19232F] flex items-center justify-between text-xs font-black text-[#95D600]">
-                  <span>PLAY NOW</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                </div>
-              </Link>
+                <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-[#C33355]"}`} />
+                <span>{cat.label}</span>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {/* 3. SEARCH RESULTS (Active when user types in search bar) */}
+      {searchQuery.trim() ? (
+        <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-black text-[#40243B] tracking-tight">
+              Search Results for <span className="text-[#C33355]">"{searchQuery}"</span>
+            </h2>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-xs font-bold text-[#C33355] hover:underline"
+            >
+              Clear Search
+            </button>
+          </div>
+
+          {filteredGames.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-[#FFF6D4] border-2 border-[#EADBBE] text-center space-y-2">
+              <Search className="w-10 h-10 text-gray-400 mx-auto" />
+              <div className="text-sm font-black text-[#40243B]">No Arcade Games Found</div>
+              <p className="text-xs text-gray-600 max-w-sm mx-auto">
+                Try searching for "Bass", "Rush", "Zeus", "Roulette", or explore categories.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              {filteredGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onPlay={(g) => setActiveDemoGame(g)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
+        <>
+          {/* ========================================================
+              4. FEATURED GAMES (Matches Screenshot Reference)
+              ======================================================== */}
+          <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl sm:text-2xl font-black text-[#40243B] tracking-tight">
+                Featured Games
+              </h2>
+              {/* Carousel navigation arrows */}
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => scrollFeatured("left")}
+                  className="w-8 h-8 rounded-full bg-[#FFF6D4] hover:bg-white text-[#40243B] border border-[#DECF9E] flex items-center justify-center shadow-xs transition active:scale-95"
+                  aria-label="Previous Featured Games"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => scrollFeatured("right")}
+                  className="w-8 h-8 rounded-full bg-[#FFF6D4] hover:bg-white text-[#40243B] border border-[#DECF9E] flex items-center justify-center shadow-xs transition active:scale-95"
+                  aria-label="Next Featured Games"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Horizontal Scrollable Carousel Row */}
+            <div
+              ref={featuredRowRef}
+              className="flex items-center space-x-3 sm:space-x-4 overflow-x-auto pb-4 pt-1 scrollbar-thin scrollbar-thumb-[#91D2BC] scrollbar-track-[#FFF6D4]/40 scroll-smooth"
+            >
+              {featuredGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onPlay={(g) => setActiveDemoGame(g)}
+                />
+              ))}
+            </div>
+
+            {/* Custom Track Indicator Bar (matches screenshot scrollbar styling) */}
+            <div className="w-full flex items-center justify-between px-2 pt-1">
+              <div className="h-1.5 w-full bg-[#B2DFC0] rounded-full overflow-hidden">
+                <div className="h-full w-1/3 bg-[#7ABEA9] rounded-full animate-pulse" />
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================
+              5. NEW GAMES SECTION (Matches Screenshot Reference)
+              ======================================================== */}
+          <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-xl sm:text-2xl font-black text-[#40243B] tracking-tight">
+                  New Games
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-[#0D9488] text-white text-[9px] font-black uppercase tracking-wider">
+                  HOT PICKS
+                </span>
+              </div>
+
+              <Link
+                href="/new-games"
+                onClick={() => sound.playChipClick()}
+                className="px-4 py-1.5 rounded-full bg-[#FFF6D4] hover:bg-[#FFEEC0] border border-[#DECF9E] text-[#40243B] text-xs font-black transition shadow-xs flex items-center space-x-1"
+              >
+                <span>View All</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Responsive Grid of New Games */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              {newGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onPlay={(g) => setActiveDemoGame(g)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* ========================================================
+              6. ARCADE & TABLE CLASSICS SECTION
+              ======================================================== */}
+          <section className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl sm:text-2xl font-black text-[#40243B] tracking-tight">
+                Arcade & Table Classics
+              </h2>
+              <span className="text-xs font-bold text-[#40243B]/70">
+                100% Free Virtual Chips
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              {ARCADE_GAMES.filter(
+                (g) => g.category === "Roulette" || g.category === "Blackjack" || g.category === "Arcade"
+              ).map((game) => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onPlay={(g) => setActiveDemoGame(g)}
+                />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
